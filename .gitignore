@@ -1,0 +1,4 @@
+.vscode/
+build/
+docker-build
+build_dockers.sh

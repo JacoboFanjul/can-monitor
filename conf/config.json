@@ -1,0 +1,8 @@
+{
+    "rest_server_port": 48890,
+    "mqtt_broker_ip": "emq-adeptness.iot.ikerlan.es",
+    "mqtt_broker_port": 1883,
+    "mqtt_qos": 0,
+    "mqtt_id": "Adeptness",
+    "mqtt_username": "adeptness"
+  }
