@@ -57,7 +57,7 @@ const char *create_discovery_payload(void)
 
 }
 
-const char * create_data_payload(void)
+const char * create_data_payload(double lift01Speed, int Lift01FloorLocation)
 {
     struct timeval tv;
     gettimeofday(&tv, NULL);
@@ -67,7 +67,7 @@ const char * create_data_payload(void)
 
     JSON_Value *leaf_value_1 = json_value_init_object();
     JSON_Object *leaf_object_1 = json_value_get_object(leaf_value_1);  
-    double lift01Speed= ((double) rand()*(2.0-0.5)/(double)RAND_MAX-0.5);
+
     json_object_set_string(leaf_object_1, "bn", "urn:ngsi-ld:Sensor:Lift01Speed");
     json_object_set_string(leaf_object_1, "n", "varValue");
     json_object_set_number(leaf_object_1, "v", lift01Speed);
@@ -76,7 +76,7 @@ const char * create_data_payload(void)
 
     leaf_value_1 = json_value_init_object();
     leaf_object_1 = json_value_get_object(leaf_value_1);
-    int Lift01FloorLocation= rand() % 10;
+    
     json_object_set_string(leaf_object_1, "bn", "urn:ngsi-ld:Sensor:Lift01FloorLocation");
     json_object_set_string(leaf_object_1, "n", "varValue");
     json_object_set_number(leaf_object_1, "v", Lift01FloorLocation );

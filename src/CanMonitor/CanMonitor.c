@@ -337,7 +337,9 @@ int main(int argc, char *argv[])
         gettimeofday(&tv, NULL);
 
         printf("Create payload.\n");
-        const char *payload = create_data_payload();
+        double lift01Speed = ((double) rand()*(2.0-0.5)/(double)RAND_MAX-0.5);
+        int Lift01FloorLocation = rand() % 10;
+        const char *payload = create_data_payload(lift01Speed, Lift01FloorLocation);
         printf("Payload created: %s\n", payload);
 
         publish(mqtt_client, mqtt_data_topic, strdup(payload));
