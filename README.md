@@ -3,6 +3,15 @@
 Based on the KonnektSense device service, the code has been reduced as much as possible in order to have a basic service that allows you to serve a REST API and publish an MQTT message.
 
 
+## Roadmap
+
+- [ ] Add query support
+- [ ] Delete Polling Interval references
+- [ ] Complete delete support
+- [ ] Generate data structs for variables
+- [ ] Generate array/map/hasttables for variable structs
+- [ ] Affect data structures with API calls
+
 ## About
 
 This service generates random number every 5 seconds and publish them through MQTT.
