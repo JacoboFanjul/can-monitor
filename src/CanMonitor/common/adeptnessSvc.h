@@ -38,14 +38,26 @@ typedef adeptness_rest_response (*adeptness_handle_get)(void *impl, const char *
 typedef adeptness_rest_response (*adeptness_handle_put)(void *impl, const char *devname, char *url, char **payload);
 
 /**
- * @brief Callback issued during service shutdown. The implementation
- * should stop processing and release any resources that were being used.
+ * @brief Callback issued to handle POST requests for setting device values.
  * @param impl The context data passed in when the service was created.
- * @param force A 'force' stop has been requested. An unclean shutdown may be
- *              performed if necessary.
+ * @param devname The name of the device to be queried.
+ * @param url Info in url after path /adeptnessMs/specific/.
+ * @param values An array with the values to set. 
+ * @return true if the operation was successful, false otherwise.
  */
 
 typedef adeptness_rest_response (*adeptness_handle_post)(void *impl, const char *devname, char *url, char **payload);
+
+/**
+ * @brief Callback issued to handle DELETE requests for setting device values.
+ * @param impl The context data passed in when the service was created.
+ * @param devname The name of the device to be queried.
+ * @param url Info in url after path /adeptnessMs/specific/.
+ * @param values An array with the values to set. 
+ * @return true if the operation was successful, false otherwise.
+ */
+
+typedef adeptness_rest_response (*adeptness_handle_delete)(void *impl, const char *devname, char *url, char **payload);
 
 /**
  * @brief Callback issued during service shutdown. The implementation
@@ -59,39 +71,40 @@ typedef void (*adeptness_stop)(void *impl, bool force);
 
 typedef struct adeptness_rest_callbacks
 {
-  adeptness_handle_get gethandler;
-  adeptness_handle_put puthandler;
-  adeptness_handle_post posthandler;
- 
-  adeptness_stop stop;
+    adeptness_handle_get gethandler;
+    adeptness_handle_put puthandler;
+    adeptness_handle_post posthandler;
+    adeptness_handle_delete deletehandler;
+
+    adeptness_stop stop;
 } adeptness_callbacks;
 
-typedef enum 
-{ 
-  LOCKED, 
-  UNLOCKED 
+typedef enum
+{
+    LOCKED,
+    UNLOCKED
 } adeptness_adminstate;
 
-typedef enum 
-{ 
-  ENABLED, 
-  DISABLED 
+typedef enum
+{
+    ENABLED,
+    DISABLED
 } adeptness_operatingstate;
 
 struct adeptness_service
 {
-  const char *name;
-  const char *version;
-  void *userdata;
-  adeptness_callbacks userfns;
-  uint16_t port;
-  atomic_bool *stopconfig;
-  adeptness_rest_server *daemon;
-  adeptness_operatingstate opstate;
-  adeptness_adminstate adminstate;
-  uint64_t starttime;
+    const char *name;
+    const char *version;
+    void *userdata;
+    adeptness_callbacks userfns;
+    uint16_t port;
+    atomic_bool *stopconfig;
+    adeptness_rest_server *daemon;
+    adeptness_operatingstate opstate;
+    adeptness_adminstate adminstate;
+    uint64_t starttime;
 
-  pthread_mutex_t discolock;
+    pthread_mutex_t discolock;
 };
 
 //struct adeptness_service;

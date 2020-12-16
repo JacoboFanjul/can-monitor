@@ -21,7 +21,7 @@ static char *mqtt_discovery_topic = "adms/v2/discovery";
 static char *mqtt_data_topic = "adms/v2/monitor-agent/urn:ngis.ld:DeployableComp:MonitorCan01Edge01/urn:ngis.ld:SensorGroup:MonitorCAN01_Group01";
 
 /* Global vars */
-static sig_atomic_t running = true;
+sig_atomic_t ms_status = 0;
 
 int mid_sent = -1;
 
@@ -29,6 +29,12 @@ bool ready_for_repeat = false;
 
 // struct mosq_config *cfg = NULL;
 // struct mosquitto *mosq = NULL;
+
+// TODO create map for variables
+// TODO create map for subscriptions
+// TODO create map foe conections 
+
+
 
 static volatile int keepRunning = 1;
 
@@ -51,7 +57,7 @@ int mqtt_qos;
  */
 static void int_handler(int i)
 {
-    running = (i != SIGINT);
+    ms_status = exit_ms;
 }
 
 /**
@@ -284,10 +290,11 @@ int main(int argc, char *argv[])
     /* Device Callbacks */
     adeptness_callbacks adeptnesscbs =
         {
-            myAdeptnessService_get_handler, /* Get */
-            myAdeptnessService_put_handler, /* Put */
-            myAdeptnessService_post_handler, /* Post */
-            myAdeptnessService_stop         /* Stop */
+            myAdeptnessService_get_handler,     /* Get */
+            myAdeptnessService_put_handler,     /* Put */
+            myAdeptnessService_post_handler,    /* Post */
+            myAdeptnessService_delete_handler,  /* Delete */
+            myAdeptnessService_stop             /* Stop */
         };
 
     /* Initalise a new adeptness service */
@@ -325,27 +332,29 @@ int main(int argc, char *argv[])
 
     signal(SIGINT, int_handler);
     signal(SIGUSR1, usr_handler);
-    running = true;
+    ms_status = running;
 
     const char *discovery_payload = create_discovery_payload();
     printf("Discovery payload = %s\n", discovery_payload);
     publish(mqtt_client, mqtt_discovery_topic, strdup(discovery_payload));
 
-    while (running)
+    while (ms_status != exit_ms)
     {
-        struct timeval tv;
-        gettimeofday(&tv, NULL);
+        if (ms_status == running)
+        {
+            struct timeval tv;
+            gettimeofday(&tv, NULL);
 
-        printf("Create payload.\n");
-        double lift01Speed = ((double) rand()*(2.0-0.5)/(double)RAND_MAX-0.5);
-        int Lift01FloorLocation = rand() % 10;
-        const char *payload = create_data_payload(lift01Speed, Lift01FloorLocation);
-        printf("Payload created: %s\n", payload);
+            printf("Create payload.\n");
+            double lift01Speed = ((double) rand()*(2.0-0.5)/(double)RAND_MAX-0.5);
+            int Lift01FloorLocation = rand() % 10;
+            const char *payload = create_data_payload(lift01Speed, Lift01FloorLocation);
+            printf("Payload created: %s\n", payload);
 
-        publish(mqtt_client, mqtt_data_topic, strdup(payload));
-        //printf("LogicalData = %ld  %lu\n", st.logical_data, tv.tv_sec * 1000 + tv.tv_usec / 1000);
-        printf("Sent JSON at [%lu]: %s\n", tv.tv_sec * 1000 + tv.tv_usec / 1000, payload);
-
+            publish(mqtt_client, mqtt_data_topic, strdup(payload));
+            //printf("LogicalData = %ld  %lu\n", st.logical_data, tv.tv_sec * 1000 + tv.tv_usec / 1000);
+            printf("Sent JSON at [%lu]: %s\n", tv.tv_sec * 1000 + tv.tv_usec / 1000, payload);
+        }
         sleep(st.polling_interval);
     }
 
