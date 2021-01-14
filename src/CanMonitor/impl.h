@@ -107,18 +107,18 @@ int read_connection_configuration(char **readings);
 int update_connection_configuration(char **values);
 
 int create_sensors_configuration(char **values);
-int update_sensors_configuration(char **values);
+int update_sensors_configuration(char **values, query_pairs *queries);
 int read_sensors_configuration(char **readings);
-int delete_sensors_configuration(void);
+int delete_sensors_configuration(char **values, query_pairs *queries);
 
 int create_sensorgroups_configuration(char **values);
-int update_sensorgroups_configuration(char **values);
+int update_sensorgroups_configuration(char **values, query_pairs *queries);
 int read_sensorgroups_configuration(char **readings);
-int delete_sensorgroups_configuration(void);
+int delete_sensorgroups_configuration(char **values, query_pairs *queries);
 
 int read_monitoring_agent_status(char **readings);
 int cmd_execute_configuration(char **values);
 
-int read_sensor_measurements(char **readings);
+int read_sensor_measurements(char **readings, query_pairs *queries);
 
 #endif

@@ -81,7 +81,7 @@ adeptness_service *adeptness_service_new(const char *name, const char *version, 
     return result;
 }
 
-static int adeptness_ping_handler(void *ctx, char *url, adeptness_http_method method, const char *upload_data, size_t upload_data_size, void **reply, size_t *reply_size, const char **reply_type)
+static int adeptness_ping_handler(void *ctx, char *url, adeptness_http_method method, query_pairs *queries, const char *upload_data, size_t upload_data_size, void **reply, size_t *reply_size, const char **reply_type)
 {
     adeptness_service *svc = (adeptness_service *)ctx;
     *reply = strdup(svc->version);
@@ -90,7 +90,7 @@ static int adeptness_ping_handler(void *ctx, char *url, adeptness_http_method me
     return MHD_HTTP_OK;
 }
 
-static int adeptness_info_handler(void *ctx, char *url, adeptness_http_method method, const char *upload_data, size_t upload_data_size, void **reply, size_t *reply_size, const char **reply_type)
+static int adeptness_info_handler(void *ctx, char *url, adeptness_http_method method, query_pairs *queries, const char *upload_data, size_t upload_data_size, void **reply, size_t *reply_size, const char **reply_type)
 {
 
     extern int rest_server_port;
@@ -127,7 +127,7 @@ static int adeptness_info_handler(void *ctx, char *url, adeptness_http_method me
     return MHD_HTTP_OK;
 }
 
-static int adeptness_status_handler(void *ctx, char *url, adeptness_http_method method, const char *upload_data, size_t upload_data_size, void **reply, size_t *reply_size, const char **reply_type)
+static int adeptness_status_handler(void *ctx, char *url, adeptness_http_method method, query_pairs *queries, const char *upload_data, size_t upload_data_size, void **reply, size_t *reply_size, const char **reply_type)
 {
     JSON_Value *rval = json_value_init_object();
     JSON_Object *robj = json_value_get_object(rval);
@@ -166,7 +166,7 @@ static int adeptness_status_handler(void *ctx, char *url, adeptness_http_method 
     }
 }
 
-static int adeptness_specific_handler(void *ctx, char *url, adeptness_http_method method, const char *upload_data, size_t upload_data_size, void **reply, size_t *reply_size, const char **reply_type)
+static int adeptness_specific_handler(void *ctx, char *url, adeptness_http_method method, query_pairs *queries, const char *upload_data, size_t upload_data_size, void **reply, size_t *reply_size, const char **reply_type)
 {
     adeptness_service *svc = (adeptness_service *)ctx;
     adeptness_rest_response response;
@@ -174,7 +174,7 @@ static int adeptness_specific_handler(void *ctx, char *url, adeptness_http_metho
 
     if (method == GET)
     {
-        response = svc->userfns.gethandler(svc->userdata, svc->name, url, &result);
+        response = svc->userfns.gethandler(svc->userdata, svc->name, url, &result, queries);
 
         if (response == OK)
         {
@@ -211,7 +211,7 @@ static int adeptness_specific_handler(void *ctx, char *url, adeptness_http_metho
 
         result = strdup(upload_data);
 
-        response = svc->userfns.puthandler(svc->userdata, svc->name, url, &result);
+        response = svc->userfns.puthandler(svc->userdata, svc->name, url, &result, queries);
         if (response == OK)
         {
             return MHD_HTTP_OK;
@@ -253,7 +253,7 @@ static int adeptness_specific_handler(void *ctx, char *url, adeptness_http_metho
 
         result = strdup(upload_data);
 
-        response = svc->userfns.posthandler(svc->userdata, svc->name, url, &result);
+        response = svc->userfns.posthandler(svc->userdata, svc->name, url, &result, queries);
         if (response == OK)
         {
             return MHD_HTTP_OK;
@@ -270,6 +270,13 @@ static int adeptness_specific_handler(void *ctx, char *url, adeptness_http_metho
         {
             return MHD_HTTP_CONFLICT;
         }
+        else if (response == ERROR)
+        {
+            *reply = result;
+            *reply_size = strlen(result);
+            *reply_type = "application/json";
+            return MHD_HTTP_CONFLICT;
+        }
         else
         {
             printf("Driver for %s failed on POST\n", svc->name);
@@ -280,7 +287,7 @@ static int adeptness_specific_handler(void *ctx, char *url, adeptness_http_metho
     else if (method == DELETE)
     {
         // TODO
-        response = svc->userfns.deletehandler(svc->userdata, svc->name, url, &result);
+        response = svc->userfns.deletehandler(svc->userdata, svc->name, url, &result, queries);
         if (response == OK)
         {
             return MHD_HTTP_OK;
@@ -295,6 +302,13 @@ static int adeptness_specific_handler(void *ctx, char *url, adeptness_http_metho
         }
         else if (response == NO_CONFIG_DATA)
         {
+            return MHD_HTTP_CONFLICT;
+        }
+        else if (response == ERROR)
+        {
+            *reply = result;
+            *reply_size = strlen(result);
+            *reply_type = "application/json";
             return MHD_HTTP_CONFLICT;
         }
         else

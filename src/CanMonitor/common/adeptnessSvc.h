@@ -24,7 +24,7 @@
  * @return true if the operation was successful, false otherwise.
  */
 
-typedef adeptness_rest_response (*adeptness_handle_get)(void *impl, const char *devname, char *url, char **payload);
+typedef adeptness_rest_response (*adeptness_handle_get)(void *impl, const char *devname, char *url, char **payload, query_pairs *queries);
 
 /**
  * @brief Callback issued to handle PUT requests for setting device values.
@@ -35,7 +35,7 @@ typedef adeptness_rest_response (*adeptness_handle_get)(void *impl, const char *
  * @return true if the operation was successful, false otherwise.
  */
 
-typedef adeptness_rest_response (*adeptness_handle_put)(void *impl, const char *devname, char *url, char **payload);
+typedef adeptness_rest_response (*adeptness_handle_put)(void *impl, const char *devname, char *url, char **payload, query_pairs *queries);
 
 /**
  * @brief Callback issued to handle POST requests for setting device values.
@@ -46,7 +46,7 @@ typedef adeptness_rest_response (*adeptness_handle_put)(void *impl, const char *
  * @return true if the operation was successful, false otherwise.
  */
 
-typedef adeptness_rest_response (*adeptness_handle_post)(void *impl, const char *devname, char *url, char **payload);
+typedef adeptness_rest_response (*adeptness_handle_post)(void *impl, const char *devname, char *url, char **payload, query_pairs *queries);
 
 /**
  * @brief Callback issued to handle DELETE requests for setting device values.
@@ -57,7 +57,7 @@ typedef adeptness_rest_response (*adeptness_handle_post)(void *impl, const char 
  * @return true if the operation was successful, false otherwise.
  */
 
-typedef adeptness_rest_response (*adeptness_handle_delete)(void *impl, const char *devname, char *url, char **payload);
+typedef adeptness_rest_response (*adeptness_handle_delete)(void *impl, const char *devname, char *url, char **payload, query_pairs *queries);
 
 /**
  * @brief Callback issued during service shutdown. The implementation

@@ -38,9 +38,9 @@ adeptness_rest_response get_agentStatus_handler(char **readings)
 
 }
 
-adeptness_rest_response get_sensors_measurements_handler(char **readings)
+adeptness_rest_response get_sensors_measurements_handler(char **readings, query_pairs *queries)
 {
-    return read_sensor_measurements(readings);
+    return read_sensor_measurements(readings, queries);
 }
 
 // TODO Borrar
@@ -64,7 +64,6 @@ adeptness_rest_response put_pollingInterval_handler(void *impl, char **values)
 
 adeptness_rest_response put_setup_handler(char **values)
 {
-    // TODO parse & update setup & error control
     return update_microservice_configuration(values);
 }
 
@@ -73,16 +72,14 @@ adeptness_rest_response put_config_connection_handler(char **values)
     return update_connection_configuration(values);
 }
 
-adeptness_rest_response put_config_sensors_handler(char **values)
+adeptness_rest_response put_config_sensors_handler(char **values, query_pairs *queries)
 {
-    // TODO Parse, add parameters & error control
-    return update_sensors_configuration(values);
+    return update_sensors_configuration(values, queries);
 }
 
-adeptness_rest_response put_config_sensorgroups_handler(char **values)
+adeptness_rest_response put_config_sensorgroups_handler(char **values, query_pairs *queries)
 {
-    // TODO Parse, add parameters & error control
-    return update_sensorgroups_configuration(values);
+    return update_sensorgroups_configuration(values, queries);
 }
 
 adeptness_rest_response put_cmdExecute_handler(char **values)
@@ -100,17 +97,17 @@ adeptness_rest_response post_config_sensorgroups_handler(char **values)
     return create_sensorgroups_configuration(values);
 }
 
-adeptness_rest_response delete_config_sensors_handler(char **values)
+adeptness_rest_response delete_config_sensors_handler(char **values, query_pairs *queries)
 {
-    return delete_sensors_configuration();
+    return delete_sensors_configuration(values, queries);
 }
 
-adeptness_rest_response delete_config_sensorgroups_handler(char **values)
+adeptness_rest_response delete_config_sensorgroups_handler(char **values, query_pairs *queries)
 {
-    return delete_sensorgroups_configuration();
+    return delete_sensorgroups_configuration(values, queries);
 }
 
-adeptness_rest_response myAdeptnessService_get_handler(void *impl, const char *devname, char *url, char **readings)
+adeptness_rest_response myAdeptnessService_get_handler(void *impl, const char *devname, char *url, char **readings, query_pairs *queries)
 {
     // TODO Borrar pollingInterval
     if (strcmp(url, "PollingInterval") == 0)
@@ -135,7 +132,7 @@ adeptness_rest_response myAdeptnessService_get_handler(void *impl, const char *d
     }
     else if (strcmp(url, URL_SENSORS_VAL) == 0)
     {
-        return get_sensors_measurements_handler(readings);
+        return get_sensors_measurements_handler(readings, queries);
     }
     else
     {
@@ -143,7 +140,7 @@ adeptness_rest_response myAdeptnessService_get_handler(void *impl, const char *d
     }
 }
 
-adeptness_rest_response myAdeptnessService_put_handler(void *impl, const char *devname, char *url, char **values)
+adeptness_rest_response myAdeptnessService_put_handler(void *impl, const char *devname, char *url, char **values, query_pairs *queries)
 {
     printf("PUT on %s, with %s\n", url, *values);
 
@@ -162,11 +159,11 @@ adeptness_rest_response myAdeptnessService_put_handler(void *impl, const char *d
     }
     else if (strcmp(url, URL_SENSORS_CONF) == 0)
     {
-        return put_config_sensors_handler(values);
+        return put_config_sensors_handler(values, queries);
     }
     else if (strcmp(url, URL_SENSORGROUPS) == 0)
     {
-        return put_config_sensorgroups_handler(values);
+        return put_config_sensorgroups_handler(values, queries);
     }
     else if (strcmp(url, URL_CMD_EXECUTE) == 0)
     {
@@ -178,7 +175,7 @@ adeptness_rest_response myAdeptnessService_put_handler(void *impl, const char *d
     }
 }
 
-adeptness_rest_response myAdeptnessService_post_handler(void *impl, const char *devname, char *url, char **values)
+adeptness_rest_response myAdeptnessService_post_handler(void *impl, const char *devname, char *url, char **values, query_pairs *queries)
 {
     printf("POST on %s, with %s\n", url, *values);
     if (strcmp(url, URL_SENSORS_CONF) == 0)
@@ -195,16 +192,17 @@ adeptness_rest_response myAdeptnessService_post_handler(void *impl, const char *
     }
 }
 
-adeptness_rest_response myAdeptnessService_delete_handler(void *impl, const char *devname, char *url, char **values)
+adeptness_rest_response myAdeptnessService_delete_handler(void *impl, const char *devname, char *url, char **values, query_pairs *queries)
 {
     printf("DELETE on %s\n", url);
+    
     if (strcmp(url, URL_SENSORS_CONF) == 0)
     {
-        return delete_config_sensors_handler(values);
+        return delete_config_sensors_handler(values, queries);
     }
     else if (strcmp(url, URL_SENSORGROUPS) == 0)
     {
-        return delete_config_sensorgroups_handler(values);
+        return delete_config_sensorgroups_handler(values, queries);
     }
     else
     {

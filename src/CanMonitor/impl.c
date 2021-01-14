@@ -7,6 +7,7 @@
 
 /* Include */
 #include "impl.h"
+#include "rest_server/rest_server_impl.h"
 
 /* Functions */
 
@@ -271,7 +272,7 @@ int create_sensors_configuration(char **values)
     }
     else
     {
-        create_error_message(values, "There is no variableName key in the payload json.");
+        create_error_message(values, "There is no sensorName key in the payload json.");
         return ERROR;
     }
 
@@ -282,7 +283,7 @@ int create_sensors_configuration(char **values)
     }
     else
     {
-        create_error_message(values, "There is no variableType key in the payload json.");
+        create_error_message(values, "There is no sensorType key in the payload json.");
         return ERROR;
     }
 
@@ -306,7 +307,7 @@ int create_sensors_configuration(char **values)
             }
             else
             {
-                create_error_message(values, "There is no key key in the connectionSettings array.");
+                create_error_message(values, "There is no key key in the sensorSettings array.");
                 return ERROR;
             }
 
@@ -317,7 +318,7 @@ int create_sensors_configuration(char **values)
             }
             else
             {
-                create_error_message(values, "There is no value key in the variableSettings array.");
+                create_error_message(values, "There is no value key in the sensorSettings array.");
                 return ERROR;
             }
 
@@ -333,7 +334,7 @@ int create_sensors_configuration(char **values)
     }
     else
     {
-        create_error_message(values, "There is no connectionSettings key in the payload json.");
+        create_error_message(values, "There is no sensorSettings key in the payload json.");
         return ERROR;
     }
 
@@ -355,11 +356,36 @@ int create_sensors_configuration(char **values)
 }
 
 // TODO add functionality
-int update_sensors_configuration(char **values)
+int update_sensors_configuration(char **values, query_pairs *queries)
 {
     printf("Update variables configuration\n");
-    // TODO Add query for the ID
+    // TODO Add query for the ID, for now, just print the query
     // TODO Update setup data & error control
+    query_pairs *tmp;
+    tmp = queries;
+    char* id = NULL;
+    while(tmp != NULL)
+    {
+        if(strcmp(tmp->name, QUERY_KEY_ID) == 0)
+        {
+            id = strdup(tmp->value);
+            printf("\tName: %s\n", tmp->name);
+            printf("\tValue: %s\n", id);
+            printf("ID: %s\n", id);
+        }
+        else
+        {
+            printf("\tName: %s\n", tmp->name);
+            printf("\tValue: %s\n", tmp->value);
+        }
+        
+        tmp = tmp->next;
+    }
+    if (id == NULL)
+    {
+        create_error_message(values, "There is no id query.");
+        return ERROR;
+    }
 
     JSON_Value *jval = json_parse_string(*values);
     JSON_Object *jobj = json_value_get_object(jval);
@@ -512,9 +538,37 @@ int read_sensors_configuration(char **readings)
 }
 
 // TODO add functionality
-int delete_sensors_configuration(void)
+int delete_sensors_configuration(char **values, query_pairs *queries)
 {
     printf("Delete variables\n");
+
+    // TODO For now, just print the query
+    query_pairs *tmp;
+    tmp = queries;
+    char* id = NULL;
+    while(tmp != NULL)
+    {
+        if(strcmp(tmp->name, QUERY_KEY_ID) == 0)
+        {
+            id = strdup(tmp->value);
+            printf("\tName: %s\n", tmp->name);
+            printf("\tValue: %s\n", id);
+            printf("ID: %s\n", id);
+        }
+        else
+        {
+            printf("\tName: %s\n", tmp->name);
+            printf("\tValue: %s\n", tmp->value);
+        }
+        
+        tmp = tmp->next;
+    }
+    if (id == NULL)
+    {
+        create_error_message(values, "There is no id query.");
+        return ERROR;
+    }
+
     return OK;
 }
 
@@ -684,12 +738,39 @@ int create_sensorgroups_configuration(char **values)
 }
 
 // TODO add functionality
-int update_sensorgroups_configuration(char **values)
+int update_sensorgroups_configuration(char **values, query_pairs *queries)
 {
     // TODO Update setup data & error control
     // TODO add query support
     printf("Update subscriptions\n");
     // TODO Create setup data & error control
+
+    // TODO parse query, for now, just print
+    query_pairs *tmp;
+    tmp = queries;
+    char* id = NULL;
+    while(tmp != NULL)
+    {
+        if(strcmp(tmp->name, QUERY_KEY_ID) == 0)
+        {
+            id = strdup(tmp->value);
+            printf("\tName: %s\n", tmp->name);
+            printf("\tValue: %s\n", id);
+            printf("ID: %s\n", id);
+        }
+        else
+        {
+            printf("\tName: %s\n", tmp->name);
+            printf("\tValue: %s\n", tmp->value);
+        }
+        
+        tmp = tmp->next;
+    }
+    if (id == NULL)
+    {
+        create_error_message(values, "There is no id query.");
+        return ERROR;
+    }
 
     JSON_Value *jval = json_parse_string(*values);
     JSON_Object *jobj = json_value_get_object(jval);
@@ -914,9 +995,37 @@ int read_sensorgroups_configuration(char **readings)
 }
 
 // TODO add functionality
-int delete_sensorgroups_configuration(void)
+int delete_sensorgroups_configuration(char **values, query_pairs * queries)
 {
     printf("Delete subscriptions\n");
+
+    // TODO parse query, for now, just print
+    query_pairs *tmp;
+    tmp = queries;
+    char* id = NULL;
+    while(tmp != NULL)
+    {
+        if(strcmp(tmp->name, QUERY_KEY_ID) == 0)
+        {
+            id = strdup(tmp->value);
+            printf("\tName: %s\n", tmp->name);
+            printf("\tValue: %s\n", id);
+            printf("ID: %s\n", id);
+        }
+        else
+        {
+            printf("\tName: %s\n", tmp->name);
+            printf("\tValue: %s\n", tmp->value);
+        }
+        
+        tmp = tmp->next;
+    }
+    if (id == NULL)
+    {
+        create_error_message(values, "There is no id query.");
+        return ERROR;
+    }
+    
     return OK;
 }
 
@@ -995,8 +1104,31 @@ int cmd_execute_configuration(char **values)
     return OK;
 }
 
-int read_sensor_measurements(char **readings)
+int read_sensor_measurements(char **readings, query_pairs *queries)
 {
+
+    // TODO for now, just print the query
+    query_pairs *tmp;
+    tmp = queries;
+    char* id = NULL;
+    while(tmp != NULL)
+    {
+        if(strcmp(tmp->name, QUERY_KEY_ID) == 0)
+        {
+            id = strdup(tmp->value);
+            printf("\tName: %s\n", tmp->name);
+            printf("\tValue: %s\n", id);
+            printf("ID: %s\n", id);
+        }
+        else
+        {
+            printf("\tName: %s\n", tmp->name);
+            printf("\tValue: %s\n", tmp->value);
+        }
+        
+        tmp = tmp->next;
+    }
+
     // TODO add real data, no hardcoded. Also, loop for the array?
     JSON_Value *general_branch = json_value_init_array();
     JSON_Array *general_leaves = json_value_get_array(general_branch);

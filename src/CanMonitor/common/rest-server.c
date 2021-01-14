@@ -14,6 +14,8 @@
 #include <stdlib.h>
 #include <pthread.h>
 
+#include "../rest_server/rest_server_impl.h"
+
 typedef struct handler_list
 {
     const char *url;
@@ -80,6 +82,38 @@ static char *normalizeUrl(const char *url)
     }
     *rpos = '\0';
     return res;
+}
+
+query_pairs *query_pairs_new(const char *name, const char *value, query_pairs *list)
+{
+    query_pairs *result = malloc(sizeof(query_pairs));
+    result->name = strdup(name);
+    result->value = strdup(value);
+    result->next = list;
+    return result;
+}
+
+static const char *query_paramlist[] = QUERY_KEYS;
+
+static int queryIterator(void *p, enum MHD_ValueKind kind, const char *key, const char *value)
+{
+    unsigned i;
+    for (i = 0; i < sizeof(query_paramlist) / sizeof(*query_paramlist); i++)
+    {
+        if (strcmp(key, query_paramlist[i]) == 0)
+        {
+            break;
+        }
+    }
+    if (i == sizeof(query_paramlist) / sizeof(*query_paramlist))
+    {
+        return MHD_YES;
+    }
+
+    query_pairs **list = (query_pairs **)p;
+    *list = query_pairs_new(key, value ? value : "", *list);
+
+    return MHD_YES;
 }
 
 static int http_handler(void *this, struct MHD_Connection *conn, const char *url, const char *methodname, const char *version, const char *upload_data, size_t *upload_data_size, void **context)
@@ -163,7 +197,10 @@ static int http_handler(void *this, struct MHD_Connection *conn, const char *url
         {
             if (method & h->methods)
             {
-                status = h->handler(h->context, nurl + strlen(h->url), method, ctx->m_data, ctx->m_size, &reply, &reply_size, &reply_type);
+                query_pairs *params = NULL;
+                MHD_get_connection_values(conn, MHD_GET_ARGUMENT_KIND, queryIterator, &params);
+
+                status = h->handler(h->context, nurl + strlen(h->url), method, params, ctx->m_data, ctx->m_size, &reply, &reply_size, &reply_type);
             }
             else
             {

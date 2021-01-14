@@ -20,7 +20,7 @@
 
 #include <microhttpd.h>
 
-int adeptness_handler_metrics(void *ctx, char *url, adeptness_http_method method, const char *upload_data, size_t upload_data_size, void **reply, size_t *reply_size, const char **reply_type)
+int adeptness_handler_metrics(void *ctx, char *url, adeptness_http_method method, query_pairs *queries, const char *upload_data, size_t upload_data_size, void **reply, size_t *reply_size, const char **reply_type)
 {
     struct rusage rstats;
     adeptness_service *svc = (adeptness_service *)ctx;
