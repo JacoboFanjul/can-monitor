@@ -33,15 +33,15 @@ int adeptness_handler_metrics(void *ctx, char *url, adeptness_http_method method
     JSON_Object *memobj = json_value_get_object(memval);
 
     struct mallinfo mi = mallinfo();
-    json_object_set_number(memobj, "Alloc", mi.uordblks);
-    json_object_set_number(memobj, "TotalAlloc", mi.arena + mi.hblkhd);
+    json_object_set_number(memobj, "alloc", mi.uordblks);
+    json_object_set_number(memobj, "total-alloc", mi.arena + mi.hblkhd);
 
-    json_object_set_value(obj, "Memory", memval);
+    json_object_set_value(obj, "memory", memval);
 
     double loads[1];
     if (getloadavg(loads, 1) == 1)
     {
-        json_object_set_number(obj, "CpuLoadAvg", loads[0] * 100.0 / get_nprocs());
+        json_object_set_number(obj, "cpu-load-avg", loads[0] * 100.0 / get_nprocs());
     }
 #endif
 
@@ -50,8 +50,8 @@ int adeptness_handler_metrics(void *ctx, char *url, adeptness_http_method method
         double cputime = rstats.ru_utime.tv_sec + rstats.ru_stime.tv_sec;
         cputime += (double)(rstats.ru_utime.tv_usec + rstats.ru_stime.tv_usec) / MICROS;
         double walltime = (double)(device_millitime() - svc->starttime) / MILLIS;
-        json_object_set_number(obj, "CpuTime", cputime);
-        json_object_set_number(obj, "CpuAvgUsage", cputime / walltime);
+        json_object_set_number(obj, "cpu-time", cputime);
+        json_object_set_number(obj, "cpu-avg-usage", cputime / walltime);
     }
     *reply = json_serialize_to_string(val);
     *reply_size = strlen(*reply);

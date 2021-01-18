@@ -81,7 +81,7 @@ int update_microservice_configuration(char **values)
     }
     else
     {
-        create_error_message(values, "There is no iP key in the payload json.");
+        create_error_message(values, "There is no ip key in the payload json.");
         return ERROR;
     }
 
@@ -103,7 +103,7 @@ int update_microservice_configuration(char **values)
     }
     else
     {
-        create_error_message(values, "There is no qoS key in the payload json.");
+        create_error_message(values, "There is no qos key in the payload json.");
         return ERROR;
     }
 
@@ -135,7 +135,7 @@ int read_connection_configuration(char **readings)
         json_array_append_value(leaves, leaf_value);
     }
 
-    json_object_set_value(robj, "connectionSettings", branch);
+    json_object_set_value(robj, JSON_KEY_CONNECTION_CONF_SETTINGS, branch);
 
     // TODO check if there has been an error
     // if not error
@@ -588,7 +588,7 @@ int create_sensorgroups_configuration(char **values)
     }
     else
     {
-        create_error_message(values, "There is no sensorgroupId key in the payload json.");
+        create_error_message(values, "There is no sensorgroup-id key in the payload json.");
         return ERROR;
     }
 
@@ -599,7 +599,7 @@ int create_sensorgroups_configuration(char **values)
     }
     else
     {
-        create_error_message(values, "There is no publishRate key in the payload json.");
+        create_error_message(values, "There is no publish-rate key in the payload json.");
         return ERROR;
     }
 
@@ -623,7 +623,7 @@ int create_sensorgroups_configuration(char **values)
             }
             else
             {
-                create_error_message(values, "There is no sensorId key in the connectionSettings array.");
+                create_error_message(values, "There is no sensor-id key in the connectionSettings array.");
                 return ERROR;
             }
 
@@ -634,7 +634,7 @@ int create_sensorgroups_configuration(char **values)
             }
             else
             {
-                create_error_message(values, "There is no sensorName key in the connectionSettings array.");
+                create_error_message(values, "There is no sensor-name key in the connectionSettings array.");
                 return ERROR;
             }
 
@@ -645,7 +645,7 @@ int create_sensorgroups_configuration(char **values)
             }
             else
             {
-                create_error_message(values, "There is no sensorType key in the connectionSettings array.");
+                create_error_message(values, "There is no sensor-type key in the connectionSettings array.");
                 return ERROR;
             }
 
@@ -699,7 +699,7 @@ int create_sensorgroups_configuration(char **values)
             }
             else
             {
-                create_error_message(values, "There is no sensorSettings key in the connectionSettings array.");
+                create_error_message(values, "There is no sensor-settings key in the connection-settings array.");
                 return ERROR;
             }
 
@@ -710,7 +710,7 @@ int create_sensorgroups_configuration(char **values)
             }
             else
             {
-                create_error_message(values, "There is no samplingRate key in the connectionSettings array.");
+                create_error_message(values, "There is no sampling-rate key in the connection-settings array.");
                 return ERROR;
             }
 
@@ -726,7 +726,7 @@ int create_sensorgroups_configuration(char **values)
     }
     else
     {
-        create_error_message(values, "There is no connectionSettings key in the payload json.");
+        create_error_message(values, "There is no connection-settings key in the payload json.");
         return ERROR;
     }
 
@@ -782,7 +782,7 @@ int update_sensorgroups_configuration(char **values, query_pairs *queries)
     }
     else
     {
-        create_error_message(values, "There is no sensorgroupId key in the payload json.");
+        create_error_message(values, "There is no sensorgroup-id key in the payload json.");
         return ERROR;
     }
 
@@ -793,7 +793,7 @@ int update_sensorgroups_configuration(char **values, query_pairs *queries)
     }
     else
     {
-        create_error_message(values, "There is no publishRate key in the payload json.");
+        create_error_message(values, "There is no publish-rate key in the payload json.");
         return ERROR;
     }
 
@@ -817,7 +817,7 @@ int update_sensorgroups_configuration(char **values, query_pairs *queries)
             }
             else
             {
-                create_error_message(values, "There is no sensorId key in the connectionSettings array.");
+                create_error_message(values, "There is no sensor-id key in the connectionSettings array.");
                 return ERROR;
             }
 
@@ -828,7 +828,7 @@ int update_sensorgroups_configuration(char **values, query_pairs *queries)
             }
             else
             {
-                create_error_message(values, "There is no sensorName key in the connectionSettings array.");
+                create_error_message(values, "There is no sensor-name key in the connectionSettings array.");
                 return ERROR;
             }
 
@@ -839,7 +839,7 @@ int update_sensorgroups_configuration(char **values, query_pairs *queries)
             }
             else
             {
-                create_error_message(values, "There is no sensorType key in the connectionSettings array.");
+                create_error_message(values, "There is no sensor-type key in the connectionSettings array.");
                 return ERROR;
             }
 
@@ -893,7 +893,7 @@ int update_sensorgroups_configuration(char **values, query_pairs *queries)
             }
             else
             {
-                create_error_message(values, "There is no sensorSettings key in the connectionSettings array.");
+                create_error_message(values, "There is no sensor-settings key in the connectionSettings array.");
                 return ERROR;
             }
 
@@ -904,7 +904,7 @@ int update_sensorgroups_configuration(char **values, query_pairs *queries)
             }
             else
             {
-                create_error_message(values, "There is no samplingRate key in the connectionSettings array.");
+                create_error_message(values, "There is no sampling-rate key in the connectionSettings array.");
                 return ERROR;
             }
 
@@ -920,7 +920,7 @@ int update_sensorgroups_configuration(char **values, query_pairs *queries)
     }
     else
     {
-        create_error_message(values, "There is no connectionSettings key in the payload json.");
+        create_error_message(values, "There is no connection-settings key in the payload json.");
         return ERROR;
     }
 

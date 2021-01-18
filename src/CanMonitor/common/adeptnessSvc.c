@@ -106,7 +106,7 @@ static int adeptness_info_handler(void *ctx, char *url, adeptness_http_method me
 
     json_object_set_number(robj, "id", 0);
     json_object_set_string(robj, "name", "string");
-    json_object_set_string(robj, "microserviceType", "monitor-agent");
+    json_object_set_string(robj, "microservice-type", "monitor-agent");
 
     JSON_Value *branch = json_value_init_array();
     JSON_Array *leaves = json_value_get_array(branch);
@@ -114,9 +114,9 @@ static int adeptness_info_handler(void *ctx, char *url, adeptness_http_method me
     JSON_Value *leaf_value = json_value_init_object();
     JSON_Object *leaf_object = json_value_get_object(leaf_value);
     json_object_set_string(leaf_object, "endpoint-type", "http");
-    json_object_set_string(leaf_object, "iP", IPbuffer);
+    json_object_set_string(leaf_object, "ip", IPbuffer);
     json_object_set_number(leaf_object, "port", rest_server_port);
-    json_object_set_number(leaf_object, "qoS", 0);
+    json_object_set_number(leaf_object, "qos", 0);
     json_array_append_value(leaves, leaf_value);
     json_object_set_value(robj, "endpoints", branch);
 
