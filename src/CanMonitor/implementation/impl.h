@@ -109,6 +109,7 @@ typedef struct sensorgroup
     char *id;
     uint32_t publish_rate;
     char **sensor_list;
+    struct timeval last_publish_time;
 } sensorgroup;
 
 bool adeptness_get_random(void *impl);
