@@ -6,11 +6,14 @@
  */
 
 /* Include */
-#include "impl.h"
 #include <time.h>
 #include <sys/time.h>
 
 #include "CanMonitor.h"
+
+#include "implementation/impl.h"
+
+#include "implementation/hash_table.h"
 
 #include "rest_server/rest_server_impl.h"
 
@@ -30,10 +33,12 @@ bool ready_for_repeat = false;
 // struct mosq_config *cfg = NULL;
 // struct mosquitto *mosq = NULL;
 
-// TODO create map for variables
-// TODO create map for subscriptions
-// TODO create map foe conections 
-
+// TODO create hashtable for the variables
+// Create list for variables
+// TODO Create list for sensorgroups
+HashTableSensors sensors_table;
+// TODO cambiar por vector? Hash_table?
+HashTableSensorgroups *sensorgroup_table;
 
 
 static volatile int keepRunning = 1;

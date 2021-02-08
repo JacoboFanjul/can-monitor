@@ -1,5 +1,5 @@
 #include "rest_server_impl.h"
-#include "../impl.h"
+#include "../implementation/impl.h"
 
 // TODO borrar
 adeptness_rest_response get_pollingInterval_handler(void *impl, char **readings)
@@ -35,7 +35,6 @@ adeptness_rest_response get_config_sensorgroups_handler(char **readings)
 adeptness_rest_response get_agentStatus_handler(char **readings)
 {
     return read_monitoring_agent_status(readings);
-
 }
 
 adeptness_rest_response get_sensors_measurements_handler(char **readings, query_pairs *queries)

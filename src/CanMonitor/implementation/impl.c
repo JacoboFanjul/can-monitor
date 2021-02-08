@@ -7,7 +7,7 @@
 
 /* Include */
 #include "impl.h"
-#include "rest_server/rest_server_impl.h"
+#include "../rest_server/rest_server_impl.h"
 
 /* Functions */
 

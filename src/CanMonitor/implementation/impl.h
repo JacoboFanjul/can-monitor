@@ -9,8 +9,8 @@
 #define _ADEPTNESS_MYSERVICE_H
 
 /* Includes */
-#include "common/adeptnessSvc.h"
-#include "common/parson.h"
+#include "../common/adeptnessSvc.h"
+#include "../common/parson.h"
 
 #include <unistd.h>
 #include <signal.h>
@@ -90,6 +90,26 @@ typedef struct myAdeptnessService_state
     unsigned int polling_interval;
     pid_t main_thread_pid;
 } myAdeptnessService_state;
+
+typedef struct sensor
+{
+    char *id;
+    char *name;
+    char *type;
+    uint32_t can_id;
+    uint32_t init_bit;
+    uint32_t end_bit;
+    uint32_t sampling_rate;
+    char *value;
+    char *timestamp;
+} sensor;
+
+typedef struct sensorgroup
+{
+    char *id;
+    uint32_t publish_rate;
+    char **sensor_list;
+} sensorgroup;
 
 bool adeptness_get_random(void *impl);
 

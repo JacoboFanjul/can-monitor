@@ -71,6 +71,7 @@ const char * create_data_payload(double lift01Speed, int Lift01FloorLocation)
     json_object_set_string(leaf_object_1, "bn", "urn:ngsi-ld:Sensor:Lift01Speed");
     json_object_set_string(leaf_object_1, "n", "varValue");
     json_object_set_number(leaf_object_1, "v", lift01Speed);
+    
     json_object_set_number(leaf_object_1, "bt", tv.tv_sec * 1000 + tv.tv_usec / 1000);
     json_array_append_value(leaves, leaf_value_1);
 
