@@ -268,7 +268,7 @@ HashTableSensorgroups * htsg_create(unsigned int size)
  * Return: 1 if memory allocation fails, and 0 if the function returns
  * successfully.
  */
-int htsg_put(HashTableSensorgroups *hashtable_sensorgroups, const char *key, sensor *value)
+int htsg_put(HashTableSensorgroups *hashtable_sensorgroups, const char *key, sensorgroup *value)
 {
     ListSensorgroups *node;
 
@@ -349,7 +349,7 @@ void node_handler_sensorgroups(HashTableSensorgroups *hashtable_sensorgroups, Li
  * Return: The value that corresponds to the key if it is found, and NULL
  * otherwise. If the hashtable is NULL, return NULL.
  */
-sensor * htsg_get(HashTableSensorgroups *hashtable_sensorgroups, const char *key)
+sensorgroup * htsg_get(HashTableSensorgroups *hashtable_sensorgroups, const char *key)
 {
     char *key_cp;
     unsigned int i;

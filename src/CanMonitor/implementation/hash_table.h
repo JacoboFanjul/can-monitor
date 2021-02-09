@@ -47,7 +47,7 @@ typedef struct HashTableSensors
 typedef struct ListSensorgroups
 {
         char *key;
-        sensor *value;
+        sensorgroup *value;
         struct ListSensorgroups *next;
 } ListSensorgroups;
 
@@ -86,13 +86,12 @@ void hts_free(HashTableSensors *hashtable_sensors);
 
 HashTableSensorgroups * htsg_create(unsigned int size);
 
-int htsg_put(HashTableSensorgroups *hashtable_sensorgroups, const char *key, sensor *value);
+int htsg_put(HashTableSensorgroups *hashtable_sensorgroups, const char *key, sensorgroup *value);
 
 void node_handler_sensorgroups (HashTableSensorgroups *hashtable_sensorgroups, ListSensorgroups *node);
 
-sensor * htsg_get(HashTableSensorgroups *hashtable_sensorgroups, const char *key);
+sensorgroup * htsg_get(HashTableSensorgroups *hashtable_sensorgroups, const char *key);
 
 void htsg_free(HashTableSensorgroups *hashtable_sensorgroups);
-
 
 #endif
