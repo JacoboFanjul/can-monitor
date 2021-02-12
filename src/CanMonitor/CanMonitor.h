@@ -1,14 +1,18 @@
-#ifndef _MYADEPTNESSSERVICE_H
-#define _MYADEPTNESSSERVICE_H
+#ifndef _CAN_MONITOR_H
+#define _CAN_MONITOR_H
 
-#include <bits/types/sig_atomic_t.h>
+#include "implementation/hash_table.h"
+#include "implementation/impl.h"
 
 // static char *mqtt_discovery_topic = "adms/v1/discovery";
 // static char *mqtt_data_topic = "adms/v1/monitor-agent/data";
 
-enum ms_status{ready, configured, running, error, exit_ms};
+//enum ms_status{ready, configured, running, error, exit_ms};
 
-extern sig_atomic_t ms_status;
+extern ms_status status;
+
+extern HashTableSensors *sensors_table;
+extern HashTableSensorgroups *sensorgroup_table;
 
 extern int rest_server_port;
 extern char *mqtt_broker_host;
@@ -17,8 +21,24 @@ extern char *monitor_id;
 extern char *mqtt_username;
 extern int mqtt_qos;
 
-int getInfoFromEnviromentVariables (void);
+extern uint8_t restart_mqtt;
+extern uint8_t restart_http;
+extern uint8_t can_up;
+
+extern char *can_conf_id;
+extern char *canport;
+extern int bitrate;
+
+
+int getInfoFromEnvironmentVariables (void);
 
 int read_config_file(char *config_file);
+
+// TODO Delete
+void print_sensor(sensor *sensor);
+void create_dummy_struct(void);
+void print_struct(void);
+void create_test_struct(void);
+int print_test_table(void);
 
 #endif

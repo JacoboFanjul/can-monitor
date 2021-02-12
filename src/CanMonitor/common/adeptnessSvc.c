@@ -132,19 +132,17 @@ static int adeptness_status_handler(void *ctx, char *url, adeptness_http_method 
     JSON_Value *rval = json_value_init_object();
     JSON_Object *robj = json_value_get_object(rval);
 
-    extern sig_atomic_t ms_status;
+    extern ms_status status;
     
-    // TODO check possible errors
-    switch (ms_status)
+    switch (status)
     {
     case running:
-        json_object_set_string(robj, "status", "running");
-        break;
-    case ready:
+    case configured:
+    case unconfigured:
         json_object_set_string(robj, "status", "ready");
         break;
     case error:
-        json_object_set_string(robj, "message", "The microservice is in an error state");
+        json_object_set_string(robj, "status", "error");
         break;
     default:
         json_object_set_string(robj, "message", "Unknown error");
@@ -156,7 +154,7 @@ static int adeptness_status_handler(void *ctx, char *url, adeptness_http_method 
     *reply_type = "application/json";
     json_value_free(rval);
 
-    if (ms_status == running || ms_status == ready)
+    if (status == running || status == configured || status == unconfigured)
     {
         return MHD_HTTP_OK;
     }
@@ -286,7 +284,6 @@ static int adeptness_specific_handler(void *ctx, char *url, adeptness_http_metho
     }
     else if (method == DELETE)
     {
-        // TODO
         response = svc->userfns.deletehandler(svc->userdata, svc->name, url, &result, queries);
         if (response == OK)
         {

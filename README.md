@@ -5,11 +5,11 @@ Based on the KonnektSense device service, the code has been reduced as much as p
 
 ## Roadmap
 
-- [ ] Add query support
-- [ ] Delete Polling Interval references
+- [X] Add query support
+- [X] Generate data structs for variables
+- [X] Generate array/map/hashtables for variable structs
 - [ ] Complete delete support
-- [ ] Generate data structs for variables
-- [ ] Generate array/map/hasttables for variable structs
+- [ ] Delete Polling Interval references
 - [ ] Affect data structures with API calls
 
 ## About

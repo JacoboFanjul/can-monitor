@@ -78,7 +78,7 @@
 #define JSON_KEY_SENSOR_MEASUREMENTS_VALUE "value"
 #define JSON_KEY_SENSOR_MEASUREMENTS_TIMESTAMP "timestamp"
 
-
+#define JSON_KEY_ERROR_MESSAGE "message"
 
 /* Structs */
 typedef struct myAdeptnessService_state
@@ -112,6 +112,14 @@ typedef struct sensorgroup
     struct timeval last_publish_time;
 } sensorgroup;
 
+typedef enum {
+    unconfigured,
+    configured,
+    running,
+    error,
+    exit_ms
+} ms_status;
+
 bool adeptness_get_random(void *impl);
 
 // /* Service callbacks functions */
@@ -121,7 +129,6 @@ void myAdeptnessService_stop(void *impl, bool force);
 // Helper function to create error messsages
 void create_error_message(char **values, char *message);
 
-// TODO add required parameters
 int update_microservice_configuration(char **values);
 
 int read_connection_configuration(char **readings);

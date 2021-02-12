@@ -18,7 +18,7 @@
 typedef struct ListSensors
 {
         char *key;
-        sensor *value;
+        sensor *sensor;
         struct ListSensors *next;
 } ListSensors;
 
@@ -47,7 +47,7 @@ typedef struct HashTableSensors
 typedef struct ListSensorgroups
 {
         char *key;
-        sensorgroup *value;
+        sensorgroup *sensorgroup;
         struct ListSensorgroups *next;
 } ListSensorgroups;
 

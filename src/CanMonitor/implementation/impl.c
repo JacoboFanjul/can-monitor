@@ -8,6 +8,8 @@
 /* Include */
 #include "impl.h"
 #include "../rest_server/rest_server_impl.h"
+#include "../mqtt/mqtt_payload_helpers.h"
+#include "../CanMonitor.h"
 
 /* Functions */
 
@@ -53,198 +55,211 @@ void create_error_message(char **values, char *message)
     strcpy(*values, json_serialize_to_string(rval));
 }
 
-// TODO add functionality
 int update_microservice_configuration(char **values)
 {
-    printf("Update configuration\n");
-    // TODO parse & update setup & error control
-    // Example:
-
     JSON_Value *jval = json_parse_string(*values);
     JSON_Object *jobj = json_value_get_object(jval);
 
-    if (json_object_get_value(jobj, JSON_KEY_SETUP_ENDPOINT_TYPE) != NULL)
+    if (json_object_get_value(jobj, JSON_KEY_SETUP_ENDPOINT_TYPE) != NULL && json_object_get_value(jobj, JSON_KEY_SETUP_IP) != NULL &&
+    json_object_get_value(jobj, JSON_KEY_SETUP_PORT) != NULL && json_object_get_value(jobj, JSON_KEY_SETUP_QOS) != NULL)
     {
+
         char *endpoint_type = strdup(json_object_get_string(jobj, JSON_KEY_SETUP_ENDPOINT_TYPE));
-        printf("{\n\t\"%s\": %s,\n", JSON_KEY_SETUP_ENDPOINT_TYPE, endpoint_type);
+
+        if (strcpy(endpoint_type, "http") == 0)
+        {
+            extern int rest_server_port;
+            rest_server_port = json_object_get_number(jobj, JSON_KEY_SETUP_PORT);
+
+            extern uint8_t restart_http;
+            restart_http = 1;
+            strcpy(*values, "");
+            return OK;
+        }
+        else if (strcpy(endpoint_type, "mqtt") == 0)
+        {
+            extern ms_status status;
+            ms_status old_status = status;
+
+            if(status == running)
+            {
+                status = configured;
+            }
+
+            extern char *mqtt_broker_host;
+            extern int mqtt_broker_port;
+            extern int mqtt_qos;
+            mqtt_broker_host = strdup(json_object_get_string(jobj, JSON_KEY_SETUP_IP));
+            mqtt_broker_port = json_object_get_number(jobj, JSON_KEY_SETUP_PORT);
+            mqtt_qos = json_object_get_number(jobj, JSON_KEY_SETUP_QOS);
+
+            extern uint8_t restart_mqtt;
+            restart_mqtt = 1;
+
+            if(old_status == running)
+            {
+                status = running;
+            }
+            strcpy(*values, "");
+            return OK;
+        }
+        else
+        {
+            create_error_message(values, "No valid endpoint-type");
+            return ERROR;
+        }
     }
     else
     {
-        create_error_message(values, "There is no endpoint-type key in the payload json.");
+        create_error_message(values, "Configuration is not valid.");
         return ERROR;
     }
-
-    if (json_object_get_value(jobj, JSON_KEY_SETUP_IP) != NULL)
-    {
-        char *iP = strdup(json_object_get_string(jobj, JSON_KEY_SETUP_IP));
-        printf("\t\"%s\": \"%s\",\n", JSON_KEY_SETUP_IP, iP);
-    }
-    else
-    {
-        create_error_message(values, "There is no ip key in the payload json.");
-        return ERROR;
-    }
-
-    if (json_object_get_value(jobj, JSON_KEY_SETUP_PORT) != NULL)
-    {
-        int port = json_object_get_number(jobj, JSON_KEY_SETUP_PORT);
-        printf("\t\"%s\": %d,\n", JSON_KEY_SETUP_PORT, port);
-    }
-    else
-    {
-        create_error_message(values, "There is no port key in the payload json.");
-        return ERROR;
-    }
-
-    if (json_object_get_value(jobj, JSON_KEY_SETUP_QOS) != NULL)
-    {
-        int qoS = json_object_get_number(jobj, JSON_KEY_SETUP_QOS);
-        printf("\t\"%s\": %d\n", JSON_KEY_SETUP_QOS, qoS);
-    }
-    else
-    {
-        create_error_message(values, "There is no qos key in the payload json.");
-        return ERROR;
-    }
-
-    printf("}\n");
-    strcpy(*values, "");
-    return OK;
 }
 
 int read_connection_configuration(char **readings)
 {
-    JSON_Value *rval = json_value_init_object();
-    JSON_Object *robj = json_value_get_object(rval);
+        
+    extern char *can_conf_id;
+    extern char *canport;
+    extern int bitrate;
 
-    // TODO add real data, no hardcoded.
-    json_object_set_string(robj, JSON_KEY_CONNECTION_CONF_ID, "0");
-    json_object_set_string(robj, JSON_KEY_CONNECTION_CONF_TYPE, "can");
-
-    JSON_Value *branch = json_value_init_array();
-    JSON_Array *leaves = json_value_get_array(branch);
-
-    // TODO add real data, no hardcoded
-    for (size_t i = 0; i < 1; i++)
+    if (can_conf_id != NULL)
     {
+        JSON_Value *rval = json_value_init_object();
+        JSON_Object *robj = json_value_get_object(rval);
+
+        json_object_set_string(robj, JSON_KEY_CONNECTION_CONF_ID, strdup(can_conf_id));
+        json_object_set_string(robj, JSON_KEY_CONNECTION_CONF_TYPE, "can");
+
+        JSON_Value *branch = json_value_init_array();
+        JSON_Array *leaves = json_value_get_array(branch);
+
         JSON_Value *leaf_value = json_value_init_object();
         JSON_Object *leaf_object = json_value_get_object(leaf_value);
-
         json_object_set_string(leaf_object, JSON_KEY_CONNECTION_CONF_KEY, "canport");
-        json_object_set_string(leaf_object, JSON_KEY_CONNECTION_CONF_VALUE, "can0");
+        json_object_set_string(leaf_object, JSON_KEY_CONNECTION_CONF_VALUE, strdup(canport));
         json_array_append_value(leaves, leaf_value);
-    }
 
-    json_object_set_value(robj, JSON_KEY_CONNECTION_CONF_SETTINGS, branch);
+        leaf_value = json_value_init_object();
+        leaf_object = json_value_get_object(leaf_value);
+        json_object_set_string(leaf_object, JSON_KEY_CONNECTION_CONF_KEY, "bitrate");
+        json_object_set_number(leaf_object, JSON_KEY_CONNECTION_CONF_VALUE, bitrate);
+        json_array_append_value(leaves, leaf_value);
 
-    // TODO check if there has been an error
-    // if not error
-    if (true)
-    {
+        json_object_set_value(robj, JSON_KEY_CONNECTION_CONF_SETTINGS, branch);
+
         *readings = malloc(strlen(json_serialize_to_string(rval)) * sizeof(char));
         strcpy(*readings, json_serialize_to_string(rval));
         return OK;
     }
     else
     {
-        rval = json_value_init_object();
-        robj = json_value_get_object(rval);
-        json_object_set_string(robj, "message", "There has been an error reading the configuration");
-        *readings = malloc(strlen(json_serialize_to_string(rval)) * sizeof(char));
-        strcpy(*readings, json_serialize_to_string(rval));
+        create_error_message(readings, "There is no valid CAN configuration");
         return ERROR;
     }
 }
 
-// TODO add functionality
 int update_connection_configuration(char **values)
 {
-    printf("Update configuration\n");
-    // TODO parse & update setup & error control
-    // Example:
+    extern uint8_t can_up;
+    extern char *canport;
+
+    if (can_up == 1)
+    {
+        char command[80];
+        sprintf(command, "ip link set %s down type can", canport);
+        // TODO execute command to stop de CAN
+        printf("%s\n", command);
+    }
 
     JSON_Value *jval = json_parse_string(*values);
     JSON_Object *jobj = json_value_get_object(jval);
 
-    if (json_object_get_value(jobj, JSON_KEY_CONNECTION_CONF_ID) != NULL)
+    if (json_object_get_value(jobj, JSON_KEY_CONNECTION_CONF_ID) != NULL && json_object_get_value(jobj, JSON_KEY_CONNECTION_CONF_TYPE) != NULL
+    && json_object_get_value(jobj, JSON_KEY_CONNECTION_CONF_SETTINGS) != NULL)
     {
-        char *id = strdup(json_object_get_string(jobj, JSON_KEY_CONNECTION_CONF_ID));
-        printf("{\n\t\"%s\": %s,\n", JSON_KEY_CONNECTION_CONF_ID, id);
-    }
-    else
-    {
-        create_error_message(values, "There is no id key in the payload json.");
-        return ERROR;
-    }
+        extern char *can_conf_id;
+        can_conf_id = strdup(json_object_get_string(jobj, JSON_KEY_CONNECTION_CONF_ID));
 
-    if (json_object_get_value(jobj, JSON_KEY_CONNECTION_CONF_TYPE) != NULL)
-    {
         char *monitorAgentType = strdup(json_object_get_string(jobj, JSON_KEY_CONNECTION_CONF_TYPE));
-        printf("\t\"%s\": \"%s\",\n", JSON_KEY_CONNECTION_CONF_TYPE, monitorAgentType);
-    }
-    else
-    {
-        create_error_message(values, "There is no monitorAgentType key in the payload json.");
-        return ERROR;
-    }
-
-    if (json_object_get_value(jobj, JSON_KEY_CONNECTION_CONF_SETTINGS) != NULL)
-    {
-        printf("\t\"%s\": [\n", JSON_KEY_CONNECTION_CONF_SETTINGS);
-
-        JSON_Array *connectionSettings = json_object_get_array(jobj, JSON_KEY_CONNECTION_CONF_SETTINGS);
-        size_t settingsCount = json_array_get_count(connectionSettings);
-        for (size_t i = 0; i < settingsCount; i++)
+        if (strcmp(monitorAgentType, "can") == 0)
         {
-            printf("\t\t{\n");
 
-            JSON_Value *connectionSetting = json_array_get_value(connectionSettings, i);
-            JSON_Object *settingObject = json_value_get_object(connectionSetting);
+            JSON_Array *connectionSettings = json_object_get_array(jobj, JSON_KEY_CONNECTION_CONF_SETTINGS);
+            size_t settingsCount = json_array_get_count(connectionSettings);
 
-            if (json_object_get_value(settingObject, JSON_KEY_CONNECTION_CONF_KEY) != NULL)
+            if (settingsCount == 2)
             {
-                char *key = strdup(json_object_get_string(settingObject, JSON_KEY_CONNECTION_CONF_KEY));
-                printf("\t\t\t\"%s\": %s\n", JSON_KEY_CONNECTION_CONF_KEY, key);
+                extern int bitrate;
+                canport = NULL;
+                bitrate = 0;
+
+                for (size_t i = 0; i < settingsCount; i++)
+                {
+                    JSON_Value *connectionSetting = json_array_get_value(connectionSettings, 1);
+                    JSON_Object *settingObject = json_value_get_object(connectionSetting);
+
+                    if (json_object_get_value(settingObject, JSON_KEY_CONNECTION_CONF_KEY) != NULL && 
+                    json_object_get_value(settingObject, JSON_KEY_CONNECTION_CONF_VALUE) != NULL)
+                    {
+                        char *key = strdup(json_object_get_string(settingObject, JSON_KEY_CONNECTION_CONF_KEY));
+                        
+                        if (strcmp(key, "canport") == 0)
+                        {
+                            canport = strdup(json_object_get_string(settingObject, JSON_KEY_CONNECTION_CONF_VALUE));
+                            
+                        }
+                        else if (strcmp(key, "bitrate") == 0)
+                        {
+                            bitrate = json_object_get_number(settingObject, JSON_KEY_CONNECTION_CONF_VALUE);
+                        }
+                        else
+                        {
+                            create_error_message(values, "The CAN configuration is not valid");
+                            return ERROR;
+                        }
+                    }
+                    else
+                    {
+                        create_error_message(values, "The CAN configuration is not valid");
+                        return ERROR;
+                    }
+                }
+                if (canport == NULL || bitrate == 0)
+                {
+                    create_error_message(values, "The CAN configuration is not valid");
+                    return ERROR;
+                }
+                
             }
             else
             {
-                create_error_message(values, "There is no key key in the connectionSettings array.");
+                create_error_message(values, "The CAN configuration is not valid");
                 return ERROR;
-            }
-
-            if (json_object_get_value(settingObject, JSON_KEY_CONNECTION_CONF_VALUE) != NULL)
-            {
-                char *value = strdup(json_object_get_string(settingObject, JSON_KEY_CONNECTION_CONF_VALUE));
-                printf("\t\t\t\"%s\": %s\n", JSON_KEY_CONNECTION_CONF_VALUE, value);
-            }
-            else
-            {
-                create_error_message(values, "There is no value key in the connectionSettings array.");
-                return ERROR;
-            }
-
-            if (i < settingsCount - 1)
-            {
-                printf("\t\t},\n");
-            }
-            else
-            {
-                printf("\t\t}\n");
             }
         }
+        else
+        {
+            create_error_message(values, "The configuration is not a CAN configuration");
+            return ERROR;
+        }
+
+        char command[80];
+        sprintf(command, "sudo ip link set %s up type can bitrate %d loopback off", canport, bitrate);
+        // TODO execute command to start the CAN
+        printf("%s\n", command);
+        can_up = 1;
+
+        return OK;
     }
     else
     {
-        create_error_message(values, "There is no connectionSettings key in the payload json.");
+        create_error_message(values, "The configuration is not valid");
         return ERROR;
     }
-
-    printf("\t]\n");
-    printf("}\n");
-    strcpy(*values, "");
-    return OK;
 }
 
+// TODO POST SENSORS CONFIGURATION
 // TODO add functionality
 int create_sensors_configuration(char **values)
 {
@@ -355,6 +370,7 @@ int create_sensors_configuration(char **values)
     return OK;
 }
 
+// TODO PUT SENSORS CONFIGURATION
 // TODO add functionality
 int update_sensors_configuration(char **values, query_pairs *queries)
 {
@@ -491,53 +507,129 @@ int update_sensors_configuration(char **values, query_pairs *queries)
     return OK;
 }
 
+// TODO GET SENSORS CONFIGURATION
 int read_sensors_configuration(char **readings)
 {
-    // TODO add real data, no hardcoded. Also, loop for the array?
+
+    print_struct();
+    printf("Read Sensors Configuration\n");
+    extern HashTableSensors *sensors_table;
+    //ListSensors *list_sensors = (ListSensors *)sensors_table->array;
+    
     JSON_Value *general_branch = json_value_init_array();
     JSON_Array *general_leaves = json_value_get_array(general_branch);
 
-    JSON_Value *leaf_value = json_value_init_object();
-    JSON_Object *leaf_object = json_value_get_object(leaf_value);
 
-    json_object_set_string(leaf_object, JSON_KEY_SENSOR_CONF_ID, "0");
-    json_object_set_string(leaf_object, JSON_KEY_SENSOR_CONF_NAME, "string");
-    json_object_set_string(leaf_object, JSON_KEY_SENSOR_CONF_TYPE, "Uint8");
+    unsigned int i;
+    ListSensors *listptr;
+    for (i = 0; i < sensors_table->size; ++i) {
 
-    JSON_Value *branch = json_value_init_array();
-    JSON_Array *leaves = json_value_get_array(branch);
-    JSON_Value *inner_leaf_value = json_value_init_object();
-    JSON_Object *inner_leaf_object = json_value_get_object(inner_leaf_value);
+        listptr = sensors_table->array[i];
 
-    json_object_set_string(inner_leaf_object, JSON_KEY_SENSOR_CONF_KEY, "string");
-    json_object_set_string(inner_leaf_object, JSON_KEY_SENSOR_CONF_VALUE, "string");
-    json_array_append_value(leaves, inner_leaf_value);
-    json_object_set_value(leaf_object, JSON_KEY_SENSOR_CONF_SETTINGS, branch);
+        while (listptr != NULL) {
+            printf("New Sensor\n");
+            sensor *sensor = malloc(sizeof *sensor);
+            sensor = listptr->sensor;
+                
+            printf("ID: %s", (char*)sensor->id);
+            printf(". Name: %s", sensor->name);
+            printf(". Type: %s", sensor->type);
+            printf(". CanID: %d", sensor->can_id);
+            printf(". Init bit: %d", sensor->init_bit);
+            printf(". End bit: %d", sensor->end_bit);
+            printf(". Sampling_rate: %d", sensor->sampling_rate);
+            printf(". Value: %s", sensor->value);
+            printf(". Timestamp: %s\n", sensor->timestamp);
 
-    json_object_set_number(leaf_object, JSON_KEY_SENSOR_CONF_RATE, 0);
+            JSON_Value *leaf_value = json_value_init_object();
+            JSON_Object *leaf_object = json_value_get_object(leaf_value);
 
-    json_array_append_value(general_leaves, leaf_value);
+            json_object_set_string(leaf_object, JSON_KEY_SENSOR_CONF_ID, sensor->id);
+            printf("\tSensor-id: %s\n", sensor->id);
+            json_object_set_string(leaf_object, JSON_KEY_SENSOR_CONF_NAME, sensor->name);
+            json_object_set_string(leaf_object, JSON_KEY_SENSOR_CONF_TYPE, sensor->type);
 
-    // TODO check if there has been an error
-    // if not error
-    if (true)
-    {
-        *readings = malloc(strlen(json_serialize_to_string(general_branch)) * sizeof(char));
-        strcpy(*readings, json_serialize_to_string(general_branch));
-        return OK;
+            JSON_Value *branch = json_value_init_array();
+            JSON_Array *leaves = json_value_get_array(branch);
+            JSON_Value *inner_leaf_value = json_value_init_object();
+            JSON_Object *inner_leaf_object = json_value_get_object(inner_leaf_value);
+
+            json_object_set_string(inner_leaf_object, JSON_KEY_SENSOR_CONF_KEY, "can-id");
+            char value[20];
+            sprintf(value, "%d", sensor->can_id);
+            json_object_set_string(inner_leaf_object, JSON_KEY_SENSOR_CONF_VALUE, value);
+            json_array_append_value(leaves, inner_leaf_value);
+            json_object_set_string(inner_leaf_object, JSON_KEY_SENSOR_CONF_KEY, "init-bit");
+            sprintf(value, "%d", sensor->init_bit);
+            json_object_set_string(inner_leaf_object, JSON_KEY_SENSOR_CONF_VALUE, value);
+            json_array_append_value(leaves, inner_leaf_value);
+            json_object_set_string(inner_leaf_object, JSON_KEY_SENSOR_CONF_KEY, "end-bit");
+            sprintf(value, "%d", sensor->end_bit);
+            json_object_set_string(inner_leaf_object, JSON_KEY_SENSOR_CONF_VALUE, value);
+            json_array_append_value(leaves, inner_leaf_value);
+            
+            json_object_set_value(leaf_object, JSON_KEY_SENSOR_CONF_SETTINGS, branch);
+            json_object_set_number(leaf_object, JSON_KEY_SENSOR_CONF_RATE, sensor->sampling_rate);
+            json_array_append_value(general_leaves, leaf_value);
+
+            listptr = listptr->next;
+            //free(sensor);
+        }
     }
-    else
-    {
-        JSON_Value *rval = json_value_init_object();
-        JSON_Object *robj = json_value_get_object(rval);
-        json_object_set_string(robj, "message", "There has been an error reading the variables");
-        *readings = malloc(strlen(json_serialize_to_string(rval)) * sizeof(char));
-        strcpy(*readings, json_serialize_to_string(rval));
-        return ERROR;
-    }
+
+
+
+
+    // while (list_sensors != NULL)
+    // {    
+    //     printf("New Sensor\n");
+    //     sensor *sensor = malloc(sizeof *sensor);
+    //     sensor = list_sensors->sensor;
+
+    //     JSON_Value *leaf_value = json_value_init_object();
+    //     JSON_Object *leaf_object = json_value_get_object(leaf_value);
+
+    //     json_object_set_string(leaf_object, JSON_KEY_SENSOR_CONF_ID, sensor->id);
+    //     printf("\tSensor-id: %s\n", sensor->id);
+    //     json_object_set_string(leaf_object, JSON_KEY_SENSOR_CONF_NAME, sensor->name);
+    //     json_object_set_string(leaf_object, JSON_KEY_SENSOR_CONF_TYPE, sensor->type);
+
+    //     JSON_Value *branch = json_value_init_array();
+    //     JSON_Array *leaves = json_value_get_array(branch);
+    //     JSON_Value *inner_leaf_value = json_value_init_object();
+    //     JSON_Object *inner_leaf_object = json_value_get_object(inner_leaf_value);
+
+    //     json_object_set_string(inner_leaf_object, JSON_KEY_SENSOR_CONF_KEY, "can-id");
+    //     char value[20];
+    //     sprintf(value, "%d", sensor->can_id);
+    //     json_object_set_string(inner_leaf_object, JSON_KEY_SENSOR_CONF_VALUE, value);
+    //     json_array_append_value(leaves, inner_leaf_value);
+    //     json_object_set_string(inner_leaf_object, JSON_KEY_SENSOR_CONF_KEY, "init-bit");
+    //     sprintf(value, "%d", sensor->init_bit);
+    //     json_object_set_string(inner_leaf_object, JSON_KEY_SENSOR_CONF_VALUE, value);
+    //     json_array_append_value(leaves, inner_leaf_value);
+    //     json_object_set_string(inner_leaf_object, JSON_KEY_SENSOR_CONF_KEY, "end-bit");
+    //     sprintf(value, "%d", sensor->end_bit);
+    //     json_object_set_string(inner_leaf_object, JSON_KEY_SENSOR_CONF_VALUE, value);
+    //     json_array_append_value(leaves, inner_leaf_value);
+        
+    //     json_object_set_value(leaf_object, JSON_KEY_SENSOR_CONF_SETTINGS, branch);
+    //     json_object_set_number(leaf_object, JSON_KEY_SENSOR_CONF_RATE, sensor->sampling_rate);
+    //     json_array_append_value(general_leaves, leaf_value);
+
+    //     list_sensors = list_sensors->next;
+    //     free(sensor);
+    //     sensor = NULL;
+    // }
+    printf("End Read Sensors Configuration\n");
+
+    *readings = malloc(strlen(json_serialize_to_string(general_branch)) * sizeof(char));
+    strcpy(*readings, json_serialize_to_string(general_branch));
+    return OK;
 }
 
-// TODO add functionality
+// TODO DELETE SENSORS CONFIGURATION
+// TODO Add functionality
 int delete_sensors_configuration(char **values, query_pairs *queries)
 {
     printf("Delete variables\n");
@@ -572,6 +664,7 @@ int delete_sensors_configuration(char **values, query_pairs *queries)
     return OK;
 }
 
+// TODO POST SENSORGROUP SUBSCRIPTION
 // TODO add functionality
 int create_sensorgroups_configuration(char **values)
 {
@@ -737,6 +830,7 @@ int create_sensorgroups_configuration(char **values)
     return OK;
 }
 
+// TODO PUT SENSORGROUP SUBSCRIPTION
 // TODO add functionality
 int update_sensorgroups_configuration(char **values, query_pairs *queries)
 {
@@ -930,27 +1024,30 @@ int update_sensorgroups_configuration(char **values, query_pairs *queries)
     return OK;
 }
 
+// TODO GET SENSORGROUP SUBSCRIPTION
 int read_sensorgroups_configuration(char **readings)
 {
-    // TODO add real data, no hardcoded.
+    
     JSON_Value *general_branch = json_value_init_array();
     JSON_Array *general_leaves = json_value_get_array(general_branch);
 
-    for (size_t i = 0; i < 1; i++)
+    // TODO Loop for the size of the sensorgroup table
+    for (size_t i = 0; i < 5; i++)
     {
-
         JSON_Value *leaf_value = json_value_init_object();
         JSON_Object *leaf_object = json_value_get_object(leaf_value);
 
+        // TODO Add data from the tables
         json_object_set_string(leaf_object, JSON_KEY_SENSORGROUPS_CONF_ID, "string");
-        json_object_set_number(leaf_object, JSON_KEY_SENSORGROUPS_CONF_PUBLISH_RATE, i);
+        json_object_set_number(leaf_object, JSON_KEY_SENSORGROUPS_CONF_PUBLISH_RATE, 0);
 
         JSON_Value *variable_list_branch = json_value_init_array();
         JSON_Array *variable_list_leaves = json_value_get_array(variable_list_branch);
         JSON_Value *variable_leaf_value;
         JSON_Object *variable_leaf_object;
 
-        for (size_t j = 0; j < 1; j++)
+        // TODO Loop for sensor-list size
+        for (size_t j = 0; j < 2; j++)
         {
             variable_leaf_value = json_value_init_object();
             variable_leaf_object = json_value_get_object(variable_leaf_value);
@@ -961,39 +1058,35 @@ int read_sensorgroups_configuration(char **readings)
 
             JSON_Value *variable_settings_branch = json_value_init_array();
             JSON_Array *variable_settings_leaves = json_value_get_array(variable_settings_branch);
-            JSON_Value *variable_settings_leaf_value = json_value_init_object();
-            JSON_Object *variable_settings_leaf_object = json_value_get_object(variable_settings_leaf_value);
-            json_object_set_string(variable_settings_leaf_object, JSON_KEY_SENSORGROUPS_CONF_KEY, "string");
-            json_object_set_string(variable_settings_leaf_object, JSON_KEY_SENSORGROUPS_CONF_VALUE, "string");
-            json_array_append_value(variable_settings_leaves, variable_settings_leaf_value);
+
+            // TODO Loop for sensor-settings size
+            for (size_t k = 0; k < 2; k++)
+            {
+                JSON_Value *variable_settings_leaf_value = json_value_init_object();
+                JSON_Object *variable_settings_leaf_object = json_value_get_object(variable_settings_leaf_value);
+                // TODO Get data from the table
+                json_object_set_string(variable_settings_leaf_object, JSON_KEY_SENSORGROUPS_CONF_KEY, "string");
+                json_object_set_string(variable_settings_leaf_object, JSON_KEY_SENSORGROUPS_CONF_VALUE, "string");
+                json_array_append_value(variable_settings_leaves, variable_settings_leaf_value);
+            }
+            
             json_object_set_value(variable_leaf_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_SETTINGS, variable_settings_branch);
 
-            json_object_set_number(variable_leaf_object, JSON_KEY_SENSORGROUPS_CONF_SAMPLING_RATE, j);
+            // TODO Get data from the table
+            json_object_set_number(variable_leaf_object, JSON_KEY_SENSORGROUPS_CONF_SAMPLING_RATE, 0);
             json_array_append_value(variable_list_leaves, variable_leaf_value);
         }
         json_object_set_value(leaf_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_LIST, variable_list_branch);
         json_array_append_value(general_leaves, leaf_value);
     }
-    // TODO check if there has been an error
-    // if not error
-    if (true)
-    {
-        printf("No hay error, vamos a devolver true\n");
-        *readings = malloc(strlen(json_serialize_to_string(general_branch)) * sizeof(char));
-        strcpy(*readings, json_serialize_to_string(general_branch));
-        return OK;
-    }
-    else
-    {
-        JSON_Value *rval = json_value_init_object();
-        JSON_Object *robj = json_value_get_object(rval);
-        json_object_set_string(robj, "message", "There has been an error reading the subscriptions");
-        *readings = malloc(strlen(json_serialize_to_string(rval)) * sizeof(char));
-        strcpy(*readings, json_serialize_to_string(rval));
-        return ERROR;
-    }
+
+    *readings = malloc(strlen(json_serialize_to_string(general_branch)) * sizeof(char));
+    strcpy(*readings, json_serialize_to_string(general_branch));
+    return OK;
+
 }
 
+// TODO DELETE SENSORGROUP SUBSCRIPTION
 // TODO add functionality
 int delete_sensorgroups_configuration(char **values, query_pairs * queries)
 {
@@ -1034,31 +1127,40 @@ int read_monitoring_agent_status(char **readings)
     JSON_Value *rval = json_value_init_object();
     JSON_Object *robj = json_value_get_object(rval);
 
-    // TODO add real data, no hardcoded.
-    json_object_set_string(robj, JSON_KEY_MONITORING_AGENT_STATUS, "ready");
-    //json_object_set_string(robj, JSON_KEY_MONITORING_AGENT_STATUS, "executing");
-    //json_object_set_string(robj, JSON_KEY_MONITORING_AGENT_STATUS, "error");
-
-    // TODO check if there has been an error
-    // if not error
-    if (true)
+    extern ms_status status;
+    switch (status)
     {
+    case running:
+        json_object_set_string(robj, JSON_KEY_MONITORING_AGENT_STATUS, "executing");
         *readings = malloc(strlen(json_serialize_to_string(rval)) * sizeof(char));
         strcpy(*readings, json_serialize_to_string(rval));
         return OK;
-    }
-    else
-    {
-        rval = json_value_init_object();
-        robj = json_value_get_object(rval);
-        json_object_set_string(robj, "message", "There has been an error reading the status");
+    case configured:
+        json_object_set_string(robj, JSON_KEY_MONITORING_AGENT_STATUS, "configured");
+        *readings = malloc(strlen(json_serialize_to_string(rval)) * sizeof(char));
+        strcpy(*readings, json_serialize_to_string(rval));
+        return OK;
+    case unconfigured:
+        json_object_set_string(robj, JSON_KEY_MONITORING_AGENT_STATUS, "unconfigured");
+        *readings = malloc(strlen(json_serialize_to_string(rval)) * sizeof(char));
+        strcpy(*readings, json_serialize_to_string(rval));
+        return OK;
+    case error:
+        json_object_set_string(robj, JSON_KEY_MONITORING_AGENT_STATUS, "error");
+        *readings = malloc(strlen(json_serialize_to_string(rval)) * sizeof(char));
+        strcpy(*readings, json_serialize_to_string(rval));
+        return OK;
+    case exit_ms:
+        json_object_set_string(robj, JSON_KEY_ERROR_MESSAGE, "Exiting microservice");
+        *readings = malloc(strlen(json_serialize_to_string(rval)) * sizeof(char));
+        strcpy(*readings, json_serialize_to_string(rval));
+        return ERROR;
+    default:
+        json_object_set_string(robj, JSON_KEY_ERROR_MESSAGE, "Unknown error");
         *readings = malloc(strlen(json_serialize_to_string(rval)) * sizeof(char));
         strcpy(*readings, json_serialize_to_string(rval));
         return ERROR;
     }
-
-    printf("Read monitoring agent status\n");
-    return OK;
 }
 
 int cmd_execute_configuration(char **values)
@@ -1066,6 +1168,7 @@ int cmd_execute_configuration(char **values)
 
     JSON_Value *jval = json_parse_string(*values);
     JSON_Object *jobj = json_value_get_object(jval);
+    extern ms_status status;
 
     if (json_object_get_value(jobj, JSON_KEY_CMD_EXECUTE_ORDER) != NULL)
     {
@@ -1074,21 +1177,37 @@ int cmd_execute_configuration(char **values)
 
         if (strcmp(cmd, "start") == 0)
         {
-            // TODO change status
-            printf("Starting...\n");
-            strcpy(*values, "");
-            return OK;
+            if(status == configured)
+            {
+                printf("Changing status to executing...\n");
+                strcpy(*values, "");
+                return OK;
+            }
+            else 
+            {
+                printf("Status was not configured...\n");
+                create_error_message(values, "Status was not configured.");
+                return ERROR;
+            }
         }
         else if (strcmp(cmd, "stop") == 0)
         {
-            // TODO change status
-            printf("Stoping...\n");
-            strcpy(*values, "");
-            return OK;
+            if(status == running)
+            {
+                status = configured;
+                printf("Changing status to configured...\n");
+                strcpy(*values, "");
+                return OK;
+            }
+            else
+            {
+                printf("Status was not running...\n");
+                create_error_message(values, "Status was not running.");
+                return ERROR;
+            }
         }
         else
         {
-            // TODO add payload
             printf("Error... Unknown order.\n");
             create_error_message(values, "Unknown order.");
             return ERROR;
@@ -1099,75 +1218,98 @@ int cmd_execute_configuration(char **values)
         create_error_message(values, "There is no order key in the payload json.");
         return ERROR;
     }
-
     strcpy(*values, "");
     return OK;
 }
 
+// TODO GET SENSORS MEASUREMENTS
 int read_sensor_measurements(char **readings, query_pairs *queries)
 {
 
     // TODO for now, just print the query
     query_pairs *tmp;
     tmp = queries;
-    char* id = NULL;
-    while(tmp != NULL)
+    char* sensor_id;
+
+    if (tmp != NULL)
     {
-        if(strcmp(tmp->name, QUERY_KEY_ID) == 0)
+        if (tmp->next == NULL)
         {
-            id = strdup(tmp->value);
-            printf("\tName: %s\n", tmp->name);
-            printf("\tValue: %s\n", id);
-            printf("ID: %s\n", id);
+            if(strcmp(tmp->name, QUERY_KEY_ID) == 0)
+            {
+                sensor_id = strdup(tmp->value);
+                // TODO Buscar el sensor en el hashtable
+                if (true/* el sensor esta en la tabla */)
+                {
+                    // TODO Sacar datos del sensor de la tabla
+                    JSON_Value *general_branch = json_value_init_array();
+                    JSON_Array *general_leaves = json_value_get_array(general_branch);
+
+                    JSON_Value *leaf_value = json_value_init_object();
+                    JSON_Object *leaf_object = json_value_get_object(leaf_value);
+
+                    json_object_set_string(leaf_object, JSON_KEY_SENSOR_MEASUREMENTS_ID, sensor_id);
+
+                    JSON_Value *sensor_data = json_value_init_object();
+                    JSON_Object *sensor_data_object = json_value_get_object(sensor_data);
+                    // TODO Meter datos reales
+                    json_object_set_string(sensor_data_object, JSON_KEY_SENSOR_MEASUREMENTS_NAME, "string");
+                    json_object_set_string(sensor_data_object, JSON_KEY_SENSOR_MEASUREMENTS_TYPE, "Uint8");
+                    json_object_set_string(sensor_data_object, JSON_KEY_SENSOR_MEASUREMENTS_VALUE, "string");
+                    json_object_set_number(sensor_data_object, JSON_KEY_SENSOR_MEASUREMENTS_TIMESTAMP, 0);
+                    json_object_set_value(leaf_object, JSON_KEY_SENSOR_MEASUREMENTS_DATA, sensor_data);
+
+                    json_array_append_value(general_leaves, leaf_value);
+
+                    *readings = malloc(strlen(json_serialize_to_string(general_branch)) * sizeof(char));
+                    strcpy(*readings, json_serialize_to_string(general_branch));
+                    return OK;
+                }
+                else
+                {
+                    create_error_message(readings, "Incorrect id");
+                    return ERROR;
+                }
+            }
+            else
+            {
+                create_error_message(readings, "Unsupported query");
+                return ERROR;
+            }
         }
         else
         {
-            printf("\tName: %s\n", tmp->name);
-            printf("\tValue: %s\n", tmp->value);
+            create_error_message(readings, "Too many query variables in the request");
+            return ERROR;
         }
-        
-        tmp = tmp->next;
-    }
-
-    // TODO add real data, no hardcoded. Also, loop for the array?
-    JSON_Value *general_branch = json_value_init_array();
-    JSON_Array *general_leaves = json_value_get_array(general_branch);
-
-    // TODO size depending on measurements
-    for (size_t i = 0; i < 5; i++)
-    {
-        JSON_Value *leaf_value = json_value_init_object();
-        JSON_Object *leaf_object = json_value_get_object(leaf_value);
-
-        json_object_set_string(leaf_object, JSON_KEY_SENSOR_MEASUREMENTS_ID, "string");
-
-        JSON_Value *sensor_data = json_value_init_object();
-        JSON_Object *sensor_data_object = json_value_get_object(sensor_data);
-        json_object_set_string(sensor_data_object, JSON_KEY_SENSOR_MEASUREMENTS_NAME, "string");
-        json_object_set_string(sensor_data_object, JSON_KEY_SENSOR_MEASUREMENTS_TYPE, "Uint8");
-        json_object_set_string(sensor_data_object, JSON_KEY_SENSOR_MEASUREMENTS_VALUE, "string");
-        json_object_set_number(sensor_data_object, JSON_KEY_SENSOR_MEASUREMENTS_TIMESTAMP, i);
-        json_object_set_value(leaf_object, JSON_KEY_SENSOR_MEASUREMENTS_DATA, sensor_data);
-
-        json_array_append_value(general_leaves, leaf_value);
-    }
-
-    // TODO check if there has been an error
-    // if not error
-    if (true)
-    {
-        printf("No hay error, vamos a devolver true\n");
-        *readings = malloc(strlen(json_serialize_to_string(general_branch)) * sizeof(char));
-        strcpy(*readings, json_serialize_to_string(general_branch));
-        return OK;
     }
     else
     {
-        JSON_Value *rval = json_value_init_object();
-        JSON_Object *robj = json_value_get_object(rval);
-        json_object_set_string(robj, "message", "There has been an error reading the sensor measurements");
-        *readings = malloc(strlen(json_serialize_to_string(rval)) * sizeof(char));
-        strcpy(*readings, json_serialize_to_string(rval));
-        return ERROR;
-    }
+        JSON_Value *general_branch = json_value_init_array();
+        JSON_Array *general_leaves = json_value_get_array(general_branch);
+
+        // TODO recorrer la tabla de sensores
+        for (size_t i = 0; i < 5; i++)
+        {
+            JSON_Value *leaf_value = json_value_init_object();
+            JSON_Object *leaf_object = json_value_get_object(leaf_value);
+
+            // TODO añadir datos de la tabla en vez de harcodeados
+            json_object_set_string(leaf_object, JSON_KEY_SENSOR_MEASUREMENTS_ID, "string");
+
+            JSON_Value *sensor_data = json_value_init_object();
+            JSON_Object *sensor_data_object = json_value_get_object(sensor_data);
+            json_object_set_string(sensor_data_object, JSON_KEY_SENSOR_MEASUREMENTS_NAME, "string");
+            json_object_set_string(sensor_data_object, JSON_KEY_SENSOR_MEASUREMENTS_TYPE, "Uint8");
+            json_object_set_string(sensor_data_object, JSON_KEY_SENSOR_MEASUREMENTS_VALUE, "string");
+            json_object_set_number(sensor_data_object, JSON_KEY_SENSOR_MEASUREMENTS_TIMESTAMP, 0);
+            json_object_set_value(leaf_object, JSON_KEY_SENSOR_MEASUREMENTS_DATA, sensor_data);
+
+            json_array_append_value(general_leaves, leaf_value);
+        }
+
+        *readings = malloc(strlen(json_serialize_to_string(general_branch)) * sizeof(char));
+        strcpy(*readings, json_serialize_to_string(general_branch));
+        return OK;
+    }  
 }
