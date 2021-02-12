@@ -35,6 +35,7 @@ int getInfoFromEnvironmentVariables (void);
 int read_config_file(char *config_file);
 
 // TODO Delete
+void print_sensorgroup(sensorgroup *sensorgroup);
 void print_sensor(sensor *sensor);
 void create_dummy_struct(void);
 void print_struct(void);

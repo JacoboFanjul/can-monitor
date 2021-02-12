@@ -237,6 +237,25 @@ void print_sensor(sensor *sensor)
     printf("\tTimestamp: %s\n", sensor->timestamp);
 }
 
+void print_sensorgroup(sensorgroup *sensorgroup)
+{
+    printf("Printing new sensorgroup\n");
+    printf("\tSensor ID: %s\n", sensorgroup->id);
+    printf("\tPublish_rate: %d\n", sensorgroup->publish_rate);
+    printf("\tLast published: %ld\n", sensorgroup->last_publish_time.tv_sec * 1000000 + sensorgroup->last_publish_time.tv_usec);
+    
+    // TODO add sensorlist
+    printf("\tSensorlist:\n");
+ 
+    // printf("\t\t%s\n", sensorgroup->sensor_list[0]);
+    // printf("\t\t%s\n", sensorgroup->sensor_list[1]);
+    // printf("\t\t%s\n", sensorgroup->sensor_list[2]);
+    for (size_t i = 0; i < sensorgroup->sensorcount; i++)
+    {
+        printf("\t\t%s\n", sensorgroup->sensor_list[i]);
+    }
+}
+
 // TODO delete, only for initial test
 void create_dummy_struct()
 {
@@ -251,7 +270,6 @@ void create_dummy_struct()
     sensor1->sampling_rate = 1;
     sensor1->value = strdup("Value_1");
     sensor1->timestamp = ("11111111111");
-    print_sensor(sensor1);
     hts_put(sensors_table, sensor1->id, sensor1);
 
     sensor1 = malloc(sizeof (sensor));
@@ -264,14 +282,13 @@ void create_dummy_struct()
     sensor1->sampling_rate = 2;
     sensor1->value = strdup("Value_2");
     sensor1->timestamp = ("22222222222");
-    print_sensor(sensor1);
     hts_put(sensors_table, sensor1->id, sensor1);
 
-    // // 1 sensorgroup with 1 sensor
-    // sensorgroup *sensorgroup = malloc(sizeof *sensorgroup);
-    // sensorgroup->id = strdup("id_11");
-    // sensorgroup->publish_rate = 11;
-    // sensorgroup->last_publish_time = (struct timeval){0};
+    // 1 sensorgroup with 1 sensor
+    sensorgroup *sensorgroup = malloc(sizeof *sensorgroup);
+    sensorgroup->id = strdup("id_11");
+    sensorgroup->publish_rate = 11;
+    sensorgroup->last_publish_time = (struct timeval){0};
 
     sensor1 = malloc(sizeof (sensor));
     sensor1->id = strdup("id_3");
@@ -283,21 +300,19 @@ void create_dummy_struct()
     sensor1->sampling_rate = 3;
     sensor1->value = strdup("Value_3");
     sensor1->timestamp = ("33333333333");
-    print_sensor(sensor1);
     hts_put(sensors_table, sensor1->id, sensor1);
 
+    sensorgroup->sensorcount = 1;
+    char *sensor_list[] = {"id_3"};
+    sensorgroup->sensor_list = sensor_list;
+    print_sensorgroup(sensorgroup);
+    htsg_put(sensorgroup_table, sensorgroup->id, sensorgroup);
 
-    // char *sensor_list[] = {"id_3"};
-    // sensorgroup->sensor_list = sensor_list;
-    // htsg_put(sensorgroup_table, sensorgroup->id, sensorgroup);
-    // free(sensorgroup);
-    // sensorgroup = NULL;
-
-    // // 1 sensorgroup with 2 sensors
-    // sensorgroup = malloc(sizeof *sensorgroup);
-    // sensorgroup->id = strdup("id_22");
-    // sensorgroup->publish_rate = 22;
-    // sensorgroup->last_publish_time = (struct timeval){0};
+    // 1 sensorgroup with 2 sensors
+    sensorgroup = malloc(sizeof *sensorgroup);
+    sensorgroup->id = strdup("id_22");
+    sensorgroup->publish_rate = 22;
+    sensorgroup->last_publish_time = (struct timeval){0};
 
     sensor1 = malloc(sizeof (sensor));
     sensor1->id = strdup("id_4");
@@ -309,7 +324,6 @@ void create_dummy_struct()
     sensor1->sampling_rate = 4;
     sensor1->value = strdup("Value_4");
     sensor1->timestamp = ("44444444444");
-    print_sensor(sensor1);
     hts_put(sensors_table, sensor1->id, sensor1);
 
     sensor1 = malloc(sizeof (sensor));
@@ -322,33 +336,31 @@ void create_dummy_struct()
     sensor1->sampling_rate = 5;
     sensor1->value = strdup("Value_5");
     sensor1->timestamp = ("55555555555");
-    print_sensor(sensor1);
     hts_put(sensors_table, sensor1->id, sensor1);
 
-    // char *sensor_list2[] = {"id_4", "id_5"};
-    // sensorgroup->sensor_list = sensor_list2;
-
-    // htsg_put(sensorgroup_table, sensorgroup->id, sensorgroup);
-    // free(sensorgroup);
-    // sensorgroup = NULL;
+    sensorgroup->sensorcount = 2;
+    char *sensor_list2[] = {"id_4", "id_5", "id_2", "id_3"};
+    sensorgroup->sensor_list = sensor_list2;
+    print_sensorgroup(sensorgroup);
+    htsg_put(sensorgroup_table, sensorgroup->id, sensorgroup);
 }
 
 void print_struct()
 {
-    unsigned int i;
-    ListSensors *listptr;
-    for (i = 0; i < sensors_table->size; ++i) {
+    printf("**************************\n******** Sensors *********\n**************************\n");
+    ListSensors *s_listptr;
+    for (unsigned int i = 0; i < sensors_table->size; ++i) {
         printf("%d\n", i);
 
-        listptr = sensors_table->array[i];
+        s_listptr = sensors_table->array[i];
         printf("\t--------\n");
 
-        while (listptr != NULL) {
+        while (s_listptr != NULL) {
             printf("\tkey: ");
-            printf("%s\n", listptr->key);
+            printf("%s\n", s_listptr->key);
             printf("\tval: ");
             sensor *sensor = malloc(sizeof *sensor);
-            sensor = listptr->sensor;
+            sensor = s_listptr->sensor;
                 
             printf("ID: %s", (char*)sensor->id);
             printf(". Name: %s", sensor->name);
@@ -360,9 +372,42 @@ void print_struct()
             printf(". Value: %s", sensor->value);
             printf(". Timestamp: %s\n", sensor->timestamp);
 
-            listptr = listptr->next;
+            s_listptr = s_listptr->next;
             printf("\t--------\n");
-            free(sensor);
+        }
+        printf("\tNULL\n\t--------\n");
+    }
+
+
+    printf("**************************\n****** Sensorgroups ******\n**************************\n");
+    ListSensorgroups *sg_listptr;
+    for (unsigned int i = 0; i < sensorgroup_table->size; ++i) {
+        printf("%d\n", i);
+
+        sg_listptr = sensorgroup_table->array[i];
+        printf("\t--------\n");
+
+        while (sg_listptr != NULL) {
+            printf("\tkey: ");
+            printf("%s\n", sg_listptr->key);
+            printf("\tval: ");
+            sensorgroup *sensorgroup = malloc(sizeof *sensorgroup);
+            sensorgroup = sg_listptr->sensorgroup;
+                
+            printf("ID: %s", sensorgroup->id);
+            printf(". Publish_rate: %d", sensorgroup->publish_rate);
+            printf(". Last published: %ld", sensorgroup->last_publish_time.tv_sec * 1000000 + sensorgroup->last_publish_time.tv_usec);
+            // TODO add sensorlist
+            printf(". Sensorlist:\n");
+            
+            for (size_t i = 0; i < sensorgroup->sensorcount; i++)
+            {
+                printf(" %s", strdup(sensorgroup->sensor_list[0]));
+            }
+            printf("\n");
+            
+            sg_listptr = sg_listptr->next;
+            printf("\t--------\n");
         }
         printf("\tNULL\n\t--------\n");
     }
@@ -492,7 +537,6 @@ int main(int argc, char *argv[])
     create_dummy_struct();
     print_struct();
 
-    print_struct();
     
 
     while (status != exit_ms)

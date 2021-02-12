@@ -108,6 +108,7 @@ typedef struct sensorgroup
 {
     char *id;
     uint32_t publish_rate;
+    size_t sensorcount;
     char **sensor_list;
     struct timeval last_publish_time;
 } sensorgroup;
