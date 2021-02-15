@@ -32,7 +32,8 @@
 
 #define DEF_GW_NAME "Target-1"
 #define DEF_SVC_NAME "adeptness-service"
-#define DEF_POLLING_INTERVAL_S 1000
+// TODO DELETE POLLING INTERVAL
+#define DEF_POLLING_INTERVAL_S 5
 #define DEF_MAX_JSON_SIZE 1000
 #define DEF_MAX_GW_ID_SIZE 50
 #define DEF_BUFF_SIZE 4096

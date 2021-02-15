@@ -16,8 +16,13 @@
 #include "mqtt/mqtt_payload_helpers.h"
 #include "mqtt/mqtt_utils.h"
 
-static char *mqtt_discovery_topic = "adms/v2/discovery";
-static char *mqtt_data_topic = "adms/v2/monitor-agent/urn:ngis.ld:DeployableComp:MonitorCan01Edge01/urn:ngis.ld:SensorGroup:MonitorCAN01_Group01";
+#define SENSORS_TABLE_SIZE 5
+#define SENSORGROUPS_TABLE_SIZE 3
+// TODO Delete test part
+#define DISCOVERY_TOPIC "test/adms/v2/discovery"
+
+//static char *mqtt_discovery_topic = "adms/v2/discovery";
+static char *mqtt_data_topic = "test/adms/v2/monitor-agent/urn:ngis.ld:DeployableComp:MonitorCan01Edge01/urn:ngis.ld:SensorGroup:MonitorCAN01_Group01";
 
 /* Global vars */
 ms_status status = 0;
@@ -237,24 +242,24 @@ void print_sensor(sensor *sensor)
     printf("\tTimestamp: %s\n", sensor->timestamp);
 }
 
-void print_sensorgroup(sensorgroup *sensorgroup)
-{
-    printf("Printing new sensorgroup\n");
-    printf("\tSensor ID: %s\n", sensorgroup->id);
-    printf("\tPublish_rate: %d\n", sensorgroup->publish_rate);
-    printf("\tLast published: %ld\n", sensorgroup->last_publish_time.tv_sec * 1000000 + sensorgroup->last_publish_time.tv_usec);
+// void print_sensorgroup(sensorgroup *sensorgroup)
+// {
+//     printf("Printing new sensorgroup\n");
+//     printf("\tSensor ID: %s\n", sensorgroup->id);
+//     printf("\tPublish_rate: %d\n", sensorgroup->publish_rate);
+//     printf("\tLast published: %ld\n", sensorgroup->last_publish_time.tv_sec * 1000000 + sensorgroup->last_publish_time.tv_usec);
     
-    // TODO add sensorlist
-    printf("\tSensorlist:\n");
+//     // TODO add sensorlist
+//     printf("\tSensorlist:\n");
  
-    // printf("\t\t%s\n", sensorgroup->sensor_list[0]);
-    // printf("\t\t%s\n", sensorgroup->sensor_list[1]);
-    // printf("\t\t%s\n", sensorgroup->sensor_list[2]);
-    for (size_t i = 0; i < sensorgroup->sensorcount; i++)
-    {
-        printf("\t\t%s\n", sensorgroup->sensor_list[i]);
-    }
-}
+//     // printf("\t\t%s\n", sensorgroup->sensor_list[0]);
+//     // printf("\t\t%s\n", sensorgroup->sensor_list[1]);
+//     // printf("\t\t%s\n", sensorgroup->sensor_list[2]);
+//     for (size_t i = 0; i < sensorgroup->sensorcount; i++)
+//     {
+//         printf("\t\t%s\n", sensorgroup->sensor_list[i]);
+//     }
+// }
 
 // TODO delete, only for initial test
 void create_dummy_struct()
@@ -285,10 +290,10 @@ void create_dummy_struct()
     hts_put(sensors_table, sensor1->id, sensor1);
 
     // 1 sensorgroup with 1 sensor
-    sensorgroup *sensorgroup = malloc(sizeof *sensorgroup);
-    sensorgroup->id = strdup("id_11");
-    sensorgroup->publish_rate = 11;
-    sensorgroup->last_publish_time = (struct timeval){0};
+    // sensorgroup *sensorgroup = malloc(sizeof *sensorgroup);
+    // sensorgroup->id = strdup("id_11");
+    // sensorgroup->publish_rate = 11;
+    // sensorgroup->last_publish_time = (struct timeval){0};
 
     sensor1 = malloc(sizeof (sensor));
     sensor1->id = strdup("id_3");
@@ -302,17 +307,17 @@ void create_dummy_struct()
     sensor1->timestamp = ("33333333333");
     hts_put(sensors_table, sensor1->id, sensor1);
 
-    sensorgroup->sensorcount = 1;
-    char *sensor_list[] = {"id_3"};
-    sensorgroup->sensor_list = sensor_list;
-    print_sensorgroup(sensorgroup);
-    htsg_put(sensorgroup_table, sensorgroup->id, sensorgroup);
+    // sensorgroup->sensorcount = 1;
+    // char *sensor_list[] = {"id_3"};
+    // sensorgroup->sensor_list = sensor_list;
+    // print_sensorgroup(sensorgroup);
+    // htsg_put(sensorgroup_table, sensorgroup->id, sensorgroup);
 
     // 1 sensorgroup with 2 sensors
-    sensorgroup = malloc(sizeof *sensorgroup);
-    sensorgroup->id = strdup("id_22");
-    sensorgroup->publish_rate = 22;
-    sensorgroup->last_publish_time = (struct timeval){0};
+    // sensorgroup = malloc(sizeof *sensorgroup);
+    // sensorgroup->id = strdup("id_22");
+    // sensorgroup->publish_rate = 22;
+    // sensorgroup->last_publish_time = (struct timeval){0};
 
     sensor1 = malloc(sizeof (sensor));
     sensor1->id = strdup("id_4");
@@ -338,11 +343,11 @@ void create_dummy_struct()
     sensor1->timestamp = ("55555555555");
     hts_put(sensors_table, sensor1->id, sensor1);
 
-    sensorgroup->sensorcount = 2;
-    char *sensor_list2[] = {"id_4", "id_5", "id_2", "id_3"};
-    sensorgroup->sensor_list = sensor_list2;
-    print_sensorgroup(sensorgroup);
-    htsg_put(sensorgroup_table, sensorgroup->id, sensorgroup);
+    // sensorgroup->sensorcount = 2;
+    // char *sensor_list2[] = {"id_4", "id_5", "id_2", "id_3"};
+    // sensorgroup->sensor_list = sensor_list2;
+    // print_sensorgroup(sensorgroup);
+    // htsg_put(sensorgroup_table, sensorgroup->id, sensorgroup);
 }
 
 void print_struct()
@@ -379,38 +384,38 @@ void print_struct()
     }
 
 
-    printf("**************************\n****** Sensorgroups ******\n**************************\n");
-    ListSensorgroups *sg_listptr;
-    for (unsigned int i = 0; i < sensorgroup_table->size; ++i) {
-        printf("%d\n", i);
+    // printf("**************************\n****** Sensorgroups ******\n**************************\n");
+    // ListSensorgroups *sg_listptr;
+    // for (unsigned int i = 0; i < sensorgroup_table->size; ++i) {
+    //     printf("%d\n", i);
 
-        sg_listptr = sensorgroup_table->array[i];
-        printf("\t--------\n");
+    //     sg_listptr = sensorgroup_table->array[i];
+    //     printf("\t--------\n");
 
-        while (sg_listptr != NULL) {
-            printf("\tkey: ");
-            printf("%s\n", sg_listptr->key);
-            printf("\tval: ");
-            sensorgroup *sensorgroup = malloc(sizeof *sensorgroup);
-            sensorgroup = sg_listptr->sensorgroup;
+    //     while (sg_listptr != NULL) {
+    //         printf("\tkey: ");
+    //         printf("%s\n", sg_listptr->key);
+    //         printf("\tval: ");
+    //         sensorgroup *sensorgroup = malloc(sizeof *sensorgroup);
+    //         sensorgroup = sg_listptr->sensorgroup;
                 
-            printf("ID: %s", sensorgroup->id);
-            printf(". Publish_rate: %d", sensorgroup->publish_rate);
-            printf(". Last published: %ld", sensorgroup->last_publish_time.tv_sec * 1000000 + sensorgroup->last_publish_time.tv_usec);
-            // TODO add sensorlist
-            printf(". Sensorlist:\n");
+    //         printf("ID: %s", sensorgroup->id);
+    //         printf(". Publish_rate: %d", sensorgroup->publish_rate);
+    //         printf(". Last published: %ld", sensorgroup->last_publish_time.tv_sec * 1000000 + sensorgroup->last_publish_time.tv_usec);
+    //         // TODO add sensorlist
+    //         printf(". Sensorlist:\n");
             
-            for (size_t i = 0; i < sensorgroup->sensorcount; i++)
-            {
-                printf(" %s", strdup(sensorgroup->sensor_list[0]));
-            }
-            printf("\n");
+    //         for (size_t i = 0; i < sensorgroup->sensorcount; i++)
+    //         {
+    //             printf(" %s", strdup(sensorgroup->sensor_list[0]));
+    //         }
+    //         printf("\n");
             
-            sg_listptr = sg_listptr->next;
-            printf("\t--------\n");
-        }
-        printf("\tNULL\n\t--------\n");
-    }
+    //         sg_listptr = sg_listptr->next;
+    //         printf("\t--------\n");
+    //     }
+    //     printf("\tNULL\n\t--------\n");
+    // }
 }
 
 /**
@@ -498,66 +503,32 @@ int main(int argc, char *argv[])
     ERR_CHECK(e);
     printf("-- Device service started\n");
 
-    /* mosquitto init */
-    printf("HOST: %s\n", mqtt_broker_host);
-    printf("PORT: %d\n", mqtt_broker_port);
-    printf("QoS: %d\n", mqtt_qos);
-    printf("ID: %s\n", monitor_id);
-    printf("USERNAME: %s\n", mqtt_username);
-
-    char mqtt_host[100];
-    sprintf(mqtt_host, "tcp://%s:%d", mqtt_broker_host, mqtt_broker_port);
-
-    MQTTClient mqtt_client;
-    MQTTClient_create(&mqtt_client, mqtt_host, monitor_id, MQTTCLIENT_PERSISTENCE_NONE, NULL);
-    MQTTClient_connectOptions conn_opts = MQTTClient_connectOptions_initializer;
-    conn_opts.reliable = false;
-    MQTTClient_setCallbacks(mqtt_client, NULL, NULL, NULL, NULL);
-    printf("-- MQTT client initialized\n");
-
-    int rc;
-    if ((rc = MQTTClient_connect(mqtt_client, &conn_opts)) != MQTTCLIENT_SUCCESS) {
-        printf("Failed to connect, return code %d\n", rc);
-        exit(-1);
-    }
-    printf("-- MQTT client connected to broker\n");
+    initializeMQTT(mqtt_broker_host, mqtt_broker_port, mqtt_qos, mqtt_username, monitor_id);
 
     signal(SIGINT, int_handler);
     signal(SIGUSR1, usr_handler);
     status = unconfigured;
     restart_mqtt = 0;
 
-    publish(mqtt_client, mqtt_discovery_topic, strdup(create_discovery_payload()));
+    publish(DISCOVERY_TOPIC, strdup(create_discovery_payload()));
 
-    // Create data structures for saving sensors and sensorgroups
-    sensors_table = hts_create(3);
-    sensorgroup_table = htsg_create(2);
+    // TODO Create data structures for saving sensors and sensorgroups
+    sensors_table = hts_create(SENSORS_TABLE_SIZE);
+    //sensorgroup_table = htsg_create(SENSORGROUPS_TABLE_SIZE);
 
     // TODO delete, this data is only for first checks
     create_dummy_struct();
     print_struct();
 
-    
 
     while (status != exit_ms)
     {
         if (restart_mqtt != 0)
         {
-            MQTTClient_disconnect(mqtt_client, 1000);
-            MQTTClient_destroy(&mqtt_client);
-            sprintf(mqtt_host, "tcp://%s:%d", mqtt_broker_host, mqtt_broker_port);
-            MQTTClient_create(&mqtt_client, mqtt_host, monitor_id, MQTTCLIENT_PERSISTENCE_NONE, NULL);
-            MQTTClient_connectOptions conn_opts = MQTTClient_connectOptions_initializer;
-            MQTTClient_setCallbacks(mqtt_client, NULL, NULL, NULL, NULL);
-            printf("-- MQTT client initialized\n");
-            int rc;
-            if ((rc = MQTTClient_connect(mqtt_client, &conn_opts)) != MQTTCLIENT_SUCCESS) {
-                printf("Failed to connect, return code %d\n", rc);
-                exit(-1);
-            }
-            printf("-- MQTT client connected to broker\n");
+            clean_mqtt();
+            initializeMQTT(mqtt_broker_host, mqtt_broker_port, mqtt_qos, mqtt_username, monitor_id);
 
-            publish(mqtt_client, mqtt_discovery_topic, strdup(create_discovery_payload()));
+            publish(DISCOVERY_TOPIC, strdup(create_discovery_payload()));
             restart_mqtt = 0;
         }
 
@@ -571,7 +542,8 @@ int main(int argc, char *argv[])
             printf("-- REST port reconfigured\n");
         }
 
-        if (status == running)
+        //if (status == running)
+        if (1)
         {
             // TODO recorrer el hashtable de sensorgroup y crear topic y payload para cada mensaje
             struct timeval tv;
@@ -583,7 +555,7 @@ int main(int argc, char *argv[])
             const char *payload = create_data_payload(lift01Speed, Lift01FloorLocation);
             printf("Payload created: %s\n", payload);
 
-            publish(mqtt_client, mqtt_data_topic, strdup(payload));
+            publish(mqtt_data_topic, strdup(payload));
                         
             printf("Sent JSON at [%lu]: %s\n", tv.tv_sec * 1000 + tv.tv_usec / 1000, payload);
         }
@@ -595,8 +567,7 @@ int main(int argc, char *argv[])
     htsg_free(sensorgroup_table);
 
     /* Clean mqtt */
-    MQTTClient_disconnect(mqtt_client, 1000);
-    MQTTClient_destroy(&mqtt_client);
+    clean_mqtt();
 
     /* Stop the adeptness service */
     adeptness_service_stop(service, true, &e);
