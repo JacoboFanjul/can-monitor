@@ -18,6 +18,9 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <sys/types.h>
+#include <net/if.h>
+#include <sys/socket.h>
+#include <linux/can.h>
 
 /* Macro */
 #define ERR_CHECK(x)                                          \
@@ -30,6 +33,7 @@
 
 /* Default values */
 
+#define CAN_INTERFACE "can0"
 #define DEF_GW_NAME "Target-1"
 #define DEF_SVC_NAME "adeptness-service"
 // TODO DELETE POLLING INTERVAL
@@ -123,6 +127,8 @@ typedef enum {
 } ms_status;
 
 bool adeptness_get_random(void *impl);
+
+int can_read(int can_socket, struct can_frame *frame);
 
 // /* Service callbacks functions */
 

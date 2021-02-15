@@ -32,6 +32,29 @@ bool adeptness_get_random(void *impl)
     return true;
 }
 
+int can_read(int can_socket, struct can_frame *frame)
+{
+    // Try to read a complete frame from can interface:
+    int nbytes = read(can_socket, frame, sizeof(struct can_frame));
+
+    // Check if we have read a complete frame, and whether it is a standard/extended frame:
+    if (nbytes > 0)
+    {
+        if (frame->can_id & CAN_EFF_FLAG) // Extended Frame Format
+        {
+            return 2;
+        }
+        else // Standard Frame Format
+        {
+            return 1;
+        }
+    }
+    else
+    {
+        return 0;
+    }
+}
+
 /**
  * @brief  Stop
  *

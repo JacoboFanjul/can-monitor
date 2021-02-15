@@ -16,6 +16,8 @@
 #include "mqtt/mqtt_payload_helpers.h"
 #include "mqtt/mqtt_utils.h"
 
+// Aux for dev only:
+#define EXISTS_CAN 0
 #define SENSORS_TABLE_SIZE 5
 #define SENSORGROUPS_TABLE_SIZE 3
 // TODO Delete test part
@@ -510,6 +512,19 @@ int main(int argc, char *argv[])
     status = unconfigured;
     restart_mqtt = 0;
 
+    // Init CAN socket:
+    int sockfd;
+    sockfd = socket(PF_CAN, SOCK_RAW, CAN_RAW);
+
+    struct sockaddr_can addr;
+    addr.can_family = AF_CAN;
+    addr.can_ifindex = if_nametoindex(CAN_INTERFACE);
+
+    bind(sockfd, (struct sockaddr *)&addr, sizeof(addr));
+
+    // Set non blocking
+    fcntl(sockfd, F_SETFL, O_NONBLOCK);
+
     publish(DISCOVERY_TOPIC, strdup(create_discovery_payload()));
 
     // TODO Create data structures for saving sensors and sensorgroups
@@ -543,7 +558,7 @@ int main(int argc, char *argv[])
         }
 
         //if (status == running)
-        if (1)
+        if (EXISTS_CAN == 0)
         {
             // TODO recorrer el hashtable de sensorgroup y crear topic y payload para cada mensaje
             struct timeval tv;
@@ -556,8 +571,46 @@ int main(int argc, char *argv[])
             printf("Payload created: %s\n", payload);
 
             publish(mqtt_data_topic, strdup(payload));
-                        
+
             printf("Sent JSON at [%lu]: %s\n", tv.tv_sec * 1000 + tv.tv_usec / 1000, payload);
+        }
+        else
+        {
+            // Init CAN frame identifier and Extended/Standard flag:
+            struct can_frame frame;
+            int ExtFlag;
+            uint32_t can_id;
+
+            ExtFlag = can_read(sockfd, &frame);
+
+            struct timeval tv;
+            gettimeofday(&tv, NULL);
+
+            //if ((ExtFlag != 0) && (frame.can_id == 0x00040030))
+            if (ExtFlag != 0)
+            {
+                if (ExtFlag == 2) // Extended Frame Format
+                {
+                    can_id = frame.can_id & CAN_EFF_MASK;
+                }
+                else // Standard Frame Format
+                {
+                    can_id = frame.can_id & CAN_SFF_MASK;
+                }
+                if (can_id == 0x00040030)
+                {
+                    printf("CAN ID: %08X\n", can_id);
+                    printf("Create payload.\n");
+                    double lift01Speed = ((double) rand()*(2.0-0.5)/(double)RAND_MAX-0.5);
+                    int Lift01FloorLocation = frame.data[2] & 0x3F;
+                    printf("Lift at floor %d\n", Lift01FloorLocation);
+                    const char *payload = create_data_payload(lift01Speed, Lift01FloorLocation);
+                    printf("Payload created: %s\n", payload);
+
+                    publish(mqtt_data_topic, strdup(payload));
+                    printf("Sent JSON at [%lu]: %s\n", tv.tv_sec * 1000 + tv.tv_usec / 1000, payload);
+                }
+            }
         }
         // TODO quitar referencia a polling_interval
         sleep(st.polling_interval);
