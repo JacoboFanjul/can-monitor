@@ -181,6 +181,51 @@ sensor *hts_get(HashTableSensors *hashtable_sensors, const char *key)
     return tmp->sensor;
 }
 
+sensor * hts_delete(HashTableSensors *hashtable_sensors, const char *key)
+{
+    unsigned int i;
+    ListSensors *sensors;
+
+    if (hashtable_sensors == NULL)
+    {
+        return NULL;
+    }
+    i = hash(key, hashtable_sensors->size);
+    sensors = hashtable_sensors->array[i];
+    
+    ListSensors *tmp = sensors;
+    ListSensors *prev = NULL;
+
+    if (tmp == NULL)
+    {
+        return NULL;
+    }
+
+    if (strcmp(tmp->key, key) == 0)
+    {
+        sensor *sens = tmp->sensor;
+        hashtable_sensors->array[i] = tmp->next;
+        free(tmp);
+        return sens;
+    }
+
+    while (tmp != NULL && strcmp(tmp->key, key) != 0)
+    {
+        prev = tmp;
+        tmp = tmp->next;
+    }
+
+    if (tmp == NULL)
+    {
+        return NULL;
+    }
+
+    prev->next = tmp->next;
+    sensor *sens = tmp->sensor;
+    free(tmp);
+    return sens;
+}
+
 /*
  * hts_free() - Free the items in a hashtable. Iterate through the hashtable's
  * array. If it is a linked list, then traverse the list and free all the
@@ -379,6 +424,51 @@ sensorgroup *htsg_get(HashTableSensorgroups *hashtable_sensorgroups, const char 
         return NULL;
     }
     return tmp->sensorgroup;
+}
+
+sensorgroup * htsg_delete(HashTableSensorgroups *hashtable_sensorgroups, const char *key)
+{
+    unsigned int i;
+    ListSensorgroups *sensorgroups;
+
+    if (hashtable_sensorgroups == NULL)
+    {
+        return NULL;
+    }
+    i = hash(key, hashtable_sensorgroups->size);
+    sensorgroups = hashtable_sensorgroups->array[i];
+    
+    ListSensorgroups *tmp = sensorgroups;
+    ListSensorgroups *prev = NULL;
+
+    if (tmp == NULL)
+    {
+        return NULL;
+    }
+
+    if (strcmp(tmp->key, key) == 0)
+    {
+        sensorgroup *sensgroup = tmp->sensorgroup;
+        hashtable_sensorgroups->array[i] = tmp->next;
+        free(tmp);
+        return sensgroup;
+    }
+
+    while (tmp != NULL && strcmp(tmp->key, key) != 0)
+    {
+        prev = tmp;
+        tmp = tmp->next;
+    }
+
+    if (tmp == NULL)
+    {
+        return NULL;
+    }
+
+    prev->next = tmp->next;
+    sensorgroup *sensgroup = tmp->sensorgroup;
+    free(tmp);
+    return sensgroup;
 }
 
 /*

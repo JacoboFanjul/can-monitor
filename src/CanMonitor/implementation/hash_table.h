@@ -74,6 +74,7 @@ typedef struct HashTableSensorgroups
  */
 unsigned int hash(const char *key, unsigned int size);
 
+// Sensors Table
 HashTableSensors * hts_create(unsigned int size);
 
 int hts_put(HashTableSensors *hashtable_sensors, const char *key, sensor *value);
@@ -82,8 +83,11 @@ void node_handler_sensors(HashTableSensors *hashtable_sensors, ListSensors *node
 
 sensor * hts_get(HashTableSensors *hashtable_sensors, const char *key);
 
+sensor * hts_delete(HashTableSensors *hashtable_sensors, const char *key);
+
 void hts_free(HashTableSensors *hashtable_sensors);
 
+// Sensorgroups Table
 HashTableSensorgroups * htsg_create(unsigned int size);
 
 int htsg_put(HashTableSensorgroups *hashtable_sensorgroups, const char *key, sensorgroup *value);
@@ -91,6 +95,8 @@ int htsg_put(HashTableSensorgroups *hashtable_sensorgroups, const char *key, sen
 void node_handler_sensorgroups (HashTableSensorgroups *hashtable_sensorgroups, ListSensorgroups *node);
 
 sensorgroup * htsg_get(HashTableSensorgroups *hashtable_sensorgroups, const char *key);
+
+sensorgroup * htsg_delete(HashTableSensorgroups *hashtable_sensorgroups, const char *key);
 
 void htsg_free(HashTableSensorgroups *hashtable_sensorgroups);
 

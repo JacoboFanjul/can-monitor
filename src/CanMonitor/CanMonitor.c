@@ -18,7 +18,7 @@
 
 // Aux for dev only:
 #define EXISTS_CAN 0
-#define SENSORS_TABLE_SIZE 5
+#define SENSORS_TABLE_SIZE 2
 #define SENSORGROUPS_TABLE_SIZE 3
 // TODO Delete test part
 #define DISCOVERY_TOPIC "test/adms/v2/discovery"
@@ -560,19 +560,22 @@ int main(int argc, char *argv[])
         //if (status == running)
         if (EXISTS_CAN == 0)
         {
-            // TODO recorrer el hashtable de sensorgroup y crear topic y payload para cada mensaje
-            struct timeval tv;
-            gettimeofday(&tv, NULL);
+            if(0)
+            {
+                // TODO recorrer el hashtable de sensorgroup y crear topic y payload para cada mensaje
+                struct timeval tv;
+                gettimeofday(&tv, NULL);
 
-            printf("Create payload.\n");
-            double lift01Speed = ((double) rand()*(2.0-0.5)/(double)RAND_MAX-0.5);
-            int Lift01FloorLocation = rand() % 10;
-            const char *payload = create_data_payload(lift01Speed, Lift01FloorLocation);
-            printf("Payload created: %s\n", payload);
+                printf("Create payload.\n");
+                double lift01Speed = ((double) rand()*(2.0-0.5)/(double)RAND_MAX-0.5);
+                int Lift01FloorLocation = rand() % 10;
+                const char *payload = create_data_payload(lift01Speed, Lift01FloorLocation);
+                printf("Payload created: %s\n", payload);
 
-            publish(mqtt_data_topic, strdup(payload));
+                publish(mqtt_data_topic, strdup(payload));
 
-            printf("Sent JSON at [%lu]: %s\n", tv.tv_sec * 1000 + tv.tv_usec / 1000, payload);
+                printf("Sent JSON at [%lu]: %s\n", tv.tv_sec * 1000 + tv.tv_usec / 1000, payload);
+            }
         }
         else
         {
