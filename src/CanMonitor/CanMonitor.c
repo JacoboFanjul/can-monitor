@@ -241,7 +241,7 @@ void print_sensor(sensor *sensor)
     printf("\tSampling rate: %d\n", sensor->sampling_rate);
     
     printf("\tValue: %s\n", sensor->value);
-    printf("\tTimestamp: %s\n", sensor->timestamp);
+    printf("\tTimestamp: %ld\n", sensor->timestamp);
 }
 
 // void print_sensorgroup(sensorgroup *sensorgroup)
@@ -276,7 +276,7 @@ void create_dummy_struct()
     sensor1->end_bit = 10;
     sensor1->sampling_rate = 1;
     sensor1->value = strdup("Value_1");
-    sensor1->timestamp = ("11111111111");
+    sensor1->timestamp = (11111111111);
     hts_put(sensors_table, sensor1->id, sensor1);
 
     sensor1 = malloc(sizeof (sensor));
@@ -288,7 +288,7 @@ void create_dummy_struct()
     sensor1->end_bit = 20;
     sensor1->sampling_rate = 2;
     sensor1->value = strdup("Value_2");
-    sensor1->timestamp = ("22222222222");
+    sensor1->timestamp = (22222222222);
     hts_put(sensors_table, sensor1->id, sensor1);
 
     // 1 sensorgroup with 1 sensor
@@ -306,7 +306,7 @@ void create_dummy_struct()
     sensor1->end_bit = 30;
     sensor1->sampling_rate = 3;
     sensor1->value = strdup("Value_3");
-    sensor1->timestamp = ("33333333333");
+    sensor1->timestamp = (33333333333);
     hts_put(sensors_table, sensor1->id, sensor1);
 
     // sensorgroup->sensorcount = 1;
@@ -330,7 +330,7 @@ void create_dummy_struct()
     sensor1->end_bit = 40;
     sensor1->sampling_rate = 4;
     sensor1->value = strdup("Value_4");
-    sensor1->timestamp = ("44444444444");
+    sensor1->timestamp = (44444444444);
     hts_put(sensors_table, sensor1->id, sensor1);
 
     sensor1 = malloc(sizeof (sensor));
@@ -342,7 +342,7 @@ void create_dummy_struct()
     sensor1->end_bit = 50;
     sensor1->sampling_rate = 5;
     sensor1->value = strdup("Value_5");
-    sensor1->timestamp = ("55555555555");
+    sensor1->timestamp = (55555555555);
     hts_put(sensors_table, sensor1->id, sensor1);
 
     // sensorgroup->sensorcount = 2;
@@ -377,7 +377,7 @@ void print_struct()
             printf(". End bit: %d", sensor->end_bit);
             printf(". Sampling_rate: %d", sensor->sampling_rate);
             printf(". Value: %s", sensor->value);
-            printf(". Timestamp: %s\n", sensor->timestamp);
+            printf(". Timestamp: %ld\n", sensor->timestamp);
 
             s_listptr = s_listptr->next;
             printf("\t--------\n");

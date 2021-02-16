@@ -141,8 +141,6 @@ adeptness_rest_response myAdeptnessService_get_handler(void *impl, const char *d
 
 adeptness_rest_response myAdeptnessService_put_handler(void *impl, const char *devname, char *url, char **values, query_pairs *queries)
 {
-    printf("PUT on %s, with %s\n", url, *values);
-
     // TODO quitar
     if (strcmp(url, "PollingInterval") == 0)
     {
@@ -176,7 +174,6 @@ adeptness_rest_response myAdeptnessService_put_handler(void *impl, const char *d
 
 adeptness_rest_response myAdeptnessService_post_handler(void *impl, const char *devname, char *url, char **values, query_pairs *queries)
 {
-    printf("POST on %s, with %s\n", url, *values);
     if (strcmp(url, URL_SENSORS_CONF) == 0)
     {
         return post_config_sensors_handler(values);
@@ -192,9 +189,7 @@ adeptness_rest_response myAdeptnessService_post_handler(void *impl, const char *
 }
 
 adeptness_rest_response myAdeptnessService_delete_handler(void *impl, const char *devname, char *url, char **values, query_pairs *queries)
-{
-    printf("DELETE on %s\n", url);
-    
+{    
     if (strcmp(url, URL_SENSORS_CONF) == 0)
     {
         return delete_config_sensors_handler(values, queries);

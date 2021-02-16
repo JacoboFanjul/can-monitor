@@ -106,7 +106,7 @@ typedef struct sensor
     uint32_t end_bit;
     uint32_t sampling_rate;
     char *value;
-    char *timestamp;
+    uint64_t timestamp;
 } sensor;
 
 typedef struct sensorgroup

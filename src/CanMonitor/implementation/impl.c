@@ -293,8 +293,6 @@ int create_sensors_configuration(char **values)
         json_object_get_value(jobj, JSON_KEY_SENSOR_CONF_SETTINGS) != NULL)
     {
         char *id = strdup(json_object_get_string(jobj, JSON_KEY_SENSOR_CONF_ID));
-        printf("%s: %s\n", JSON_KEY_SENSOR_CONF_ID, id);
-
 
         sensor *sens = hts_get(sensors_table, id);
         if (sens != NULL)
@@ -305,10 +303,8 @@ int create_sensors_configuration(char **values)
         free(sens);
 
         char *variableName = strdup(json_object_get_string(jobj, JSON_KEY_SENSOR_CONF_NAME));
-        printf("%s: %s\n", JSON_KEY_SENSOR_CONF_NAME, variableName);
 
         char *variableType = strdup(json_object_get_string(jobj, JSON_KEY_SENSOR_CONF_TYPE));
-        printf("%s: %s\n", JSON_KEY_SENSOR_CONF_TYPE, variableType);
 
         JSON_Array *connectionSettings = json_object_get_array(jobj, JSON_KEY_SENSOR_CONF_SETTINGS);
         size_t settingsCount = json_array_get_count(connectionSettings);
@@ -330,19 +326,16 @@ int create_sensors_configuration(char **values)
                     if (strcmp(key, "can-id") == 0)
                     {
                         const char *can_id_str = json_object_get_string(settingObject, JSON_KEY_SENSOR_CONF_VALUE);
-                        printf("can-id: %s\n", can_id_str);
                         can_id = atoi(can_id_str);
                     }
                     else if (strcmp(key, "init-bit") == 0)
                     {
                         const char *init_bit_str = json_object_get_string(settingObject, JSON_KEY_SENSOR_CONF_VALUE);
-                        printf("init-bit: %s\n", init_bit_str);
                         init_bit = atoi(init_bit_str);
                     }
                     else if (strcmp(key, "end-bit") == 0)
                     {
                         const char *end_bit_str = json_object_get_string(settingObject, JSON_KEY_SENSOR_CONF_VALUE);
-                        printf("end-bit: %s\n", end_bit_str);
                         end_bit = atoi(end_bit_str);
                     }
                     else
@@ -371,7 +364,6 @@ int create_sensors_configuration(char **values)
         }
 
         int samplingRate = json_object_get_number(jobj, JSON_KEY_SENSOR_CONF_RATE);
-        printf("%s: %d\n", JSON_KEY_SENSOR_CONF_RATE, samplingRate);
 
         sens = malloc(sizeof (sensor));
         sens->id = strdup(id);
@@ -381,6 +373,8 @@ int create_sensors_configuration(char **values)
         sens->init_bit = init_bit;
         sens->end_bit = end_bit;
         sens->sampling_rate = samplingRate;
+        sens->value = "";
+        sens->timestamp = 0;
         hts_put(sensors_table, sens->id, sens);
     }
     else
@@ -1070,7 +1064,7 @@ int cmd_execute_configuration(char **values)
 // TODO GET SENSORS MEASUREMENTS
 int read_sensor_measurements(char **readings, query_pairs *queries)
 {
-
+    printf("Read Sensor Values\n");
     // TODO for now, just print the query
     query_pairs *tmp;
     tmp = queries;
@@ -1084,24 +1078,26 @@ int read_sensor_measurements(char **readings, query_pairs *queries)
             {
                 sensor_id = strdup(tmp->value);
                 // TODO Buscar el sensor en el hashtable
-                if (true/* el sensor esta en la tabla */)
+
+                extern HashTableSensors *sensors_table;
+                sensor *sens = hts_get(sensors_table, sensor_id);
+                if (sens != NULL)
                 {
-                    // TODO Sacar datos del sensor de la tabla
                     JSON_Value *general_branch = json_value_init_array();
                     JSON_Array *general_leaves = json_value_get_array(general_branch);
 
                     JSON_Value *leaf_value = json_value_init_object();
                     JSON_Object *leaf_object = json_value_get_object(leaf_value);
 
-                    json_object_set_string(leaf_object, JSON_KEY_SENSOR_MEASUREMENTS_ID, sensor_id);
+                    json_object_set_string(leaf_object, JSON_KEY_SENSOR_MEASUREMENTS_ID, sens->id);
 
                     JSON_Value *sensor_data = json_value_init_object();
                     JSON_Object *sensor_data_object = json_value_get_object(sensor_data);
-                    // TODO Meter datos reales
-                    json_object_set_string(sensor_data_object, JSON_KEY_SENSOR_MEASUREMENTS_NAME, "string");
-                    json_object_set_string(sensor_data_object, JSON_KEY_SENSOR_MEASUREMENTS_TYPE, "Uint8");
-                    json_object_set_string(sensor_data_object, JSON_KEY_SENSOR_MEASUREMENTS_VALUE, "string");
-                    json_object_set_number(sensor_data_object, JSON_KEY_SENSOR_MEASUREMENTS_TIMESTAMP, 0);
+
+                    json_object_set_string(sensor_data_object, JSON_KEY_SENSOR_MEASUREMENTS_NAME, sens->name);
+                    json_object_set_string(sensor_data_object, JSON_KEY_SENSOR_MEASUREMENTS_TYPE, sens->type);
+                    json_object_set_string(sensor_data_object, JSON_KEY_SENSOR_MEASUREMENTS_VALUE, sens->value);
+                    json_object_set_number(sensor_data_object, JSON_KEY_SENSOR_MEASUREMENTS_TIMESTAMP, sens->timestamp);
                     json_object_set_value(leaf_object, JSON_KEY_SENSOR_MEASUREMENTS_DATA, sensor_data);
 
                     json_array_append_value(general_leaves, leaf_value);
@@ -1112,7 +1108,7 @@ int read_sensor_measurements(char **readings, query_pairs *queries)
                 }
                 else
                 {
-                    create_error_message(readings, "Incorrect id");
+                    create_error_message(readings, "There is no sensor with that id");
                     return ERROR;
                 }
             }
@@ -1128,29 +1124,38 @@ int read_sensor_measurements(char **readings, query_pairs *queries)
             return ERROR;
         }
     }
-    else
+    else // Send the values of all sensors
     {
+        extern HashTableSensors *sensors_table;
+        
         JSON_Value *general_branch = json_value_init_array();
         JSON_Array *general_leaves = json_value_get_array(general_branch);
 
-        // TODO recorrer la tabla de sensores
-        for (size_t i = 0; i < 5; i++)
-        {
-            JSON_Value *leaf_value = json_value_init_object();
-            JSON_Object *leaf_object = json_value_get_object(leaf_value);
+        unsigned int i;
+        ListSensors *listptr;
+        for (i = 0; i < sensors_table->size; ++i) {
 
-            // TODO añadir datos de la tabla en vez de harcodeados
-            json_object_set_string(leaf_object, JSON_KEY_SENSOR_MEASUREMENTS_ID, "string");
+            listptr = sensors_table->array[i];
 
-            JSON_Value *sensor_data = json_value_init_object();
-            JSON_Object *sensor_data_object = json_value_get_object(sensor_data);
-            json_object_set_string(sensor_data_object, JSON_KEY_SENSOR_MEASUREMENTS_NAME, "string");
-            json_object_set_string(sensor_data_object, JSON_KEY_SENSOR_MEASUREMENTS_TYPE, "Uint8");
-            json_object_set_string(sensor_data_object, JSON_KEY_SENSOR_MEASUREMENTS_VALUE, "string");
-            json_object_set_number(sensor_data_object, JSON_KEY_SENSOR_MEASUREMENTS_TIMESTAMP, 0);
-            json_object_set_value(leaf_object, JSON_KEY_SENSOR_MEASUREMENTS_DATA, sensor_data);
+            while (listptr != NULL) {
+                sensor *sensor = malloc(sizeof *sensor);
+                sensor = listptr->sensor;
+                    
+                JSON_Value *leaf_value = json_value_init_object();
+                JSON_Object *leaf_object = json_value_get_object(leaf_value);
 
-            json_array_append_value(general_leaves, leaf_value);
+                json_object_set_string(leaf_object, JSON_KEY_SENSOR_MEASUREMENTS_ID, sensor->id);
+                JSON_Value *sensor_data = json_value_init_object();
+                JSON_Object *sensor_data_object = json_value_get_object(sensor_data);
+                json_object_set_string(sensor_data_object, JSON_KEY_SENSOR_MEASUREMENTS_NAME, sensor->name);
+                json_object_set_string(sensor_data_object, JSON_KEY_SENSOR_MEASUREMENTS_TYPE, sensor->type);
+                json_object_set_string(sensor_data_object, JSON_KEY_SENSOR_MEASUREMENTS_VALUE, sensor->value);
+                json_object_set_number(sensor_data_object, JSON_KEY_SENSOR_MEASUREMENTS_TIMESTAMP, sensor->timestamp);
+                json_object_set_value(leaf_object, JSON_KEY_SENSOR_MEASUREMENTS_DATA, sensor_data);
+
+                json_array_append_value(general_leaves, leaf_value);
+                listptr = listptr->next;
+            }
         }
 
         *readings = malloc(strlen(json_serialize_to_string(general_branch)) * sizeof(char));
