@@ -8,9 +8,9 @@ Based on the KonnektSense device service, the code has been reduced as much as p
 - [X] Add query support
 - [X] Generate data structs for variables
 - [X] Generate array/map/hashtables for variable structs
-- [ ] Complete delete support
-- [ ] Delete Polling Interval references
-- [ ] Affect data structures with API calls
+- [X] Complete delete support
+- [X] Delete Polling Interval references
+- [X] Affect data structures with API calls
 
 ## About
 
@@ -90,21 +90,6 @@ Payload:
 		{"endpoint-type":"mqtt","endpoint":"example.com:1885"}
 	]
 }
-```
-
-
-### Get PollingInterval (seconds)
-``` 
-GET http://IP:48890/adeptnessMs/specific/PollingInterval
-```
-
-### Set PollingInterval (seconds)
-``` 
-PUT http://IP:48890/adeptnessMs/specific/PollingInterval
-
-Body (JSON):
-{"Value": "3",
- "Type": "Uint32"}
 ```
 
 

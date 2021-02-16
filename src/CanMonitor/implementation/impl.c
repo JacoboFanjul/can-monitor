@@ -281,6 +281,8 @@ int update_connection_configuration(char **values)
     }
 }
 
+// TODO To discuss the integration between sensors and sensorgroups
+#if SENSORS_AVAILABLE
 int create_sensors_configuration(char **values)
 {
     printf("Create sensor configuration\n");
@@ -309,9 +311,9 @@ int create_sensors_configuration(char **values)
         JSON_Array *connectionSettings = json_object_get_array(jobj, JSON_KEY_SENSOR_CONF_SETTINGS);
         size_t settingsCount = json_array_get_count(connectionSettings);
 
-        int8_t can_id = -1;
-        int8_t init_bit = -1;
-        int8_t end_bit = -1;
+        int32_t can_id = -1;
+        int32_t init_bit = -1;
+        int32_t end_bit = -1;
 
         if (settingsCount == 3)
         {
@@ -326,16 +328,19 @@ int create_sensors_configuration(char **values)
                     if (strcmp(key, "can-id") == 0)
                     {
                         const char *can_id_str = json_object_get_string(settingObject, JSON_KEY_SENSOR_CONF_VALUE);
+                        // TODO find more robust method
                         can_id = atoi(can_id_str);
                     }
                     else if (strcmp(key, "init-bit") == 0)
                     {
                         const char *init_bit_str = json_object_get_string(settingObject, JSON_KEY_SENSOR_CONF_VALUE);
+                        // TODO find more robust method
                         init_bit = atoi(init_bit_str);
                     }
                     else if (strcmp(key, "end-bit") == 0)
                     {
                         const char *end_bit_str = json_object_get_string(settingObject, JSON_KEY_SENSOR_CONF_VALUE);
+                        // TODO find more robust method
                         end_bit = atoi(end_bit_str);
                     }
                     else
@@ -404,6 +409,63 @@ int update_sensors_configuration(char **values, query_pairs *queries)
     return OK;
 }
 
+int delete_sensors_configuration(char **values, query_pairs *queries)
+{
+    query_pairs *tmp;
+    tmp = queries;
+    char* id = NULL;
+    while(tmp != NULL)
+    {
+        if(strcmp(tmp->name, QUERY_KEY_ID) == 0)
+        {
+            id = strdup(tmp->value);
+            printf("Delete sensor with id %s\n", id);
+            extern HashTableSensors *sensors_table;
+            sensor *sens = hts_delete(sensors_table, id);
+            if (sens != NULL)
+            {
+                printf("Sensor with id %s deleted\n", sens->id);
+            }
+            else
+            {
+                char message[50];
+                sprintf(message, "There is no sensor with id %s", id);
+                printf("%s\n", message);
+                create_error_message(values, message);
+                return ERROR;
+            }
+        }
+        tmp = tmp->next;
+    }
+    if (id == NULL)
+    {
+        printf("Delete sensor request without id\n");
+        create_error_message(values, "There is no id query.");
+        return ERROR;
+    }
+
+    return OK;
+}
+#else
+int create_sensors_configuration(char **values)
+{
+    create_error_message(values, "Not implemented.");
+    return ERROR;
+}
+
+int update_sensors_configuration(char **values, query_pairs *queries)
+{
+    create_error_message(values, "Not implemented.");
+    return ERROR;
+}
+
+int delete_sensors_configuration(char **values, query_pairs *queries)
+{
+    create_error_message(values, "Not implemented.");
+    return ERROR;
+}
+#endif
+
 int read_sensors_configuration(char **readings)
 {
     printf("Read Sensors Configuration\n");
@@ -412,14 +474,14 @@ int read_sensors_configuration(char **readings)
     JSON_Value *general_branch = json_value_init_array();
     JSON_Array *general_leaves = json_value_get_array(general_branch);
 
-    unsigned int i;
     ListSensors *listptr;
-    for (i = 0; i < sensors_table->size; ++i) {
-
+    for (unsigned int i = 0; i < sensors_table->size; ++i) 
+    {
         listptr = sensors_table->array[i];
 
-        while (listptr != NULL) {
-            sensor *sensor = malloc(sizeof *sensor);
+        while (listptr != NULL) 
+        {
+            sensor *sensor = malloc(sizeof(sensor));
             sensor = listptr->sensor;
                 
             JSON_Value *leaf_value = json_value_init_object();
@@ -467,458 +529,258 @@ int read_sensors_configuration(char **readings)
     return OK;
 }
 
-int delete_sensors_configuration(char **values, query_pairs *queries)
-{
-    query_pairs *tmp;
-    tmp = queries;
-    char* id = NULL;
-    while(tmp != NULL)
-    {
-        if(strcmp(tmp->name, QUERY_KEY_ID) == 0)
-        {
-            id = strdup(tmp->value);
-            printf("Delete sensor with id %s\n", id);
-            extern HashTableSensors *sensors_table;
-            sensor *sens = hts_delete(sensors_table, id);
-            if (sens != NULL)
-            {
-                printf("Sensor with id %s deleted\n", sens->id);
-            }
-            else
-            {
-                char message[50];
-                printf("There is no sensor with id %s\n", id);
-                sprintf(message, "There is no sensor with id %s", id);
-                create_error_message(values, message);
-                return ERROR;
-            }
-        }
-        tmp = tmp->next;
-    }
-    if (id == NULL)
-    {
-        printf("Delete sensor request without id\n");
-        create_error_message(values, "There is no id query.");
-        return ERROR;
-    }
-
-    return OK;
-}
-
-// TODO POST SENSORGROUP SUBSCRIPTION
-// TODO add functionality
 int create_sensorgroups_configuration(char **values)
 {
-    printf("Create subscriptions\n");
-    // TODO Create setup data & error control
-
+    printf("Create sensorgroups subscription\n");
+    
     JSON_Value *jval = json_parse_string(*values);
     JSON_Object *jobj = json_value_get_object(jval);
 
-    if (json_object_get_value(jobj, JSON_KEY_SENSORGROUPS_CONF_ID) != NULL)
+    if (json_object_get_value(jobj, JSON_KEY_SENSORGROUPS_CONF_ID) != NULL && json_object_get_value(jobj, JSON_KEY_SENSORGROUPS_CONF_PUBLISH_RATE) != NULL &&
+    json_object_get_value(jobj, JSON_KEY_SENSORGROUPS_CONF_SENSOR_LIST) != NULL)
     {
         char *id = strdup(json_object_get_string(jobj, JSON_KEY_SENSORGROUPS_CONF_ID));
-        printf("{\n\t\"%s\": %s,\n", JSON_KEY_SENSORGROUPS_CONF_ID, id);
-    }
-    else
-    {
-        create_error_message(values, "There is no sensorgroup-id key in the payload json.");
-        return ERROR;
-    }
-
-    if (json_object_get_value(jobj, JSON_KEY_SENSORGROUPS_CONF_PUBLISH_RATE) != NULL)
-    {
-        int publishRate = json_object_get_number(jobj, JSON_KEY_SENSORGROUPS_CONF_PUBLISH_RATE);
-        printf("\t\"%s\": \"%d\",\n", JSON_KEY_SENSORGROUPS_CONF_PUBLISH_RATE, publishRate);
-    }
-    else
-    {
-        create_error_message(values, "There is no publish-rate key in the payload json.");
-        return ERROR;
-    }
-
-    if (json_object_get_value(jobj, JSON_KEY_SENSORGROUPS_CONF_SENSOR_LIST) != NULL)
-    {
-        printf("\t\"%s\": [\n", JSON_KEY_SENSORGROUPS_CONF_SENSOR_LIST);
-
-        JSON_Array *sensorList = json_object_get_array(jobj, JSON_KEY_SENSORGROUPS_CONF_SENSOR_LIST);
-        size_t sensorCount = json_array_get_count(sensorList);
-        for (size_t i = 0; i < sensorCount; i++)
+        sensorgroup *sg = htsg_get(sensorgroup_table, id);
+        if (sg != NULL)
         {
-            printf("\t\t{\n");
+            create_error_message(values, "A sensor with that id already exists");
+            return ERROR;
+        }
+        free(sg);
 
-            JSON_Value *sensor = json_array_get_value(sensorList, i);
-            JSON_Object *sensorObject = json_value_get_object(sensor);
+        sg = malloc(sizeof(sensorgroup));
+        int publishRate = json_object_get_number(jobj, JSON_KEY_SENSORGROUPS_CONF_PUBLISH_RATE);
 
-            if (json_object_get_value(sensorObject, JSON_KEY_SENSORGROUPS_CONF_SENSOR_ID) != NULL)
-            {
-                char *sensorId = strdup(json_object_get_string(sensorObject, JSON_KEY_SENSORGROUPS_CONF_SENSOR_ID));
-                printf("\t\t\t\"%s\": %s,\n", JSON_KEY_SENSORGROUPS_CONF_SENSOR_ID, sensorId);
-            }
-            else
-            {
-                create_error_message(values, "There is no sensor-id key in the connectionSettings array.");
-                return ERROR;
-            }
+        JSON_Array *sgSensorlist = json_object_get_array(jobj, JSON_KEY_SENSORGROUPS_CONF_SENSOR_LIST);
+        size_t sensorsCount = json_array_get_count(sgSensorlist);
+        char **sensor_list = malloc(sg->sensorcount * sizeof(char*));
+        for (size_t i = 0; i < sensorsCount; i++)
+        {
+            JSON_Value *sensors_value = json_array_get_value(sgSensorlist, i);
+            JSON_Object *sensors_object = json_value_get_object(sensors_value);
 
-            if (json_object_get_value(sensorObject, JSON_KEY_SENSORGROUPS_CONF_SENSOR_NAME) != NULL)
+            if (json_object_get_value(sensors_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_ID) != NULL && json_object_get_value(sensors_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_NAME) != NULL &&
+            json_object_get_value(sensors_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_TYPE) != NULL && json_object_get_value(sensors_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_SETTINGS) != NULL &&
+            json_object_get_value(sensors_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_SAMPLING_RATE) != NULL)
             {
-                char *sensorName = strdup(json_object_get_string(sensorObject, JSON_KEY_SENSORGROUPS_CONF_SENSOR_NAME));
-                printf("\t\t\t\"%s\": %s,\n", JSON_KEY_SENSORGROUPS_CONF_SENSOR_NAME, sensorName);
-            }
-            else
-            {
-                create_error_message(values, "There is no sensor-name key in the connectionSettings array.");
-                return ERROR;
-            }
+                char *sensor_id = strdup(json_object_get_string(sensors_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_ID));
+                sensor *sens = hts_get(sensors_table, sensor_id);
 
-            if (json_object_get_value(sensorObject, JSON_KEY_SENSORGROUPS_CONF_SENSOR_TYPE) != NULL)
-            {
-                char *sensorType = strdup(json_object_get_string(sensorObject, JSON_KEY_SENSORGROUPS_CONF_SENSOR_TYPE));
-                printf("\t\t\t\"%s\": %s,\n", JSON_KEY_SENSORGROUPS_CONF_SENSOR_TYPE, sensorType);
-            }
-            else
-            {
-                create_error_message(values, "There is no sensor-type key in the connectionSettings array.");
-                return ERROR;
-            }
-
-            if (json_object_get_value(sensorObject, JSON_KEY_SENSORGROUPS_CONF_SENSOR_SETTINGS) != NULL)
-            {
-                printf("\t\t\t\"%s\": [\n", JSON_KEY_SENSORGROUPS_CONF_SENSOR_SETTINGS);
-                
-                JSON_Array *sensorSettingsList = json_object_get_array(sensorObject, JSON_KEY_SENSORGROUPS_CONF_SENSOR_SETTINGS);
-                size_t sensorSettingsCount = json_array_get_count(sensorSettingsList);
-
-                for (size_t i = 0; i < sensorSettingsCount; i++)
+                if (sens == NULL)
                 {
-                    printf("\t\t\t\t{\n");
+                    sens = malloc(sizeof(sensor));
+                    sens->id = sensor_id;
+                    sens->name = strdup(json_object_get_string(sensors_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_NAME));
+                    sens->type = strdup(json_object_get_string(sensors_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_TYPE));
 
-                    JSON_Value *sensorSetting = json_array_get_value(sensorSettingsList, i);
-                    JSON_Object *sensorSettingObject = json_value_get_object(sensorSetting);
-
-                    if (json_object_get_value(sensorSettingObject, JSON_KEY_SENSORGROUPS_CONF_KEY) != NULL)
+                    int32_t can_id = -1;
+                    int32_t init_bit = -1;
+                    int32_t end_bit = -1;
+                    JSON_Array *sensorSettingsList = json_object_get_array(sensors_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_SETTINGS);
+                    size_t sensorSettingsCount = json_array_get_count(sensorSettingsList);
+                    if (sensorSettingsCount == 3)
                     {
-                        char *key = strdup(json_object_get_string(sensorSettingObject, JSON_KEY_SENSORGROUPS_CONF_KEY));
-                        printf("\t\t\t\t\t\t\"%s\": %s,\n", JSON_KEY_SENSORGROUPS_CONF_KEY, key);
+                        for (size_t k = 0; k < sensorSettingsCount; k++)
+                        {
+                            JSON_Value *sensorSetting = json_array_get_value(sensorSettingsList, k);
+                            JSON_Object *sensorSettingObject = json_value_get_object(sensorSetting);
+                            if (json_object_get_value(sensorSettingObject, JSON_KEY_SENSORGROUPS_CONF_SENSOR_KEY) != NULL && 
+                            json_object_get_value(sensorSettingObject, JSON_KEY_SENSORGROUPS_CONF_SENSOR_VALUE) != NULL)
+                            {
+                                char *key = strdup(json_object_get_string(sensorSettingObject, JSON_KEY_SENSORGROUPS_CONF_SENSOR_KEY));
+                                if (strcmp(key, "can-id") == 0)
+                                {
+                                    const char *can_id_str = json_object_get_string(sensorSettingObject, JSON_KEY_SENSORGROUPS_CONF_SENSOR_VALUE);
+                                    // TODO find more robust method
+                                    can_id = atoi(can_id_str);
+                                }
+                                else if (strcmp(key, "init-bit") == 0)
+                                {
+                                    const char *init_bit_str = json_object_get_string(sensorSettingObject, JSON_KEY_SENSORGROUPS_CONF_SENSOR_VALUE);
+                                    // TODO find more robust method
+                                    init_bit = atoi(init_bit_str);
+                                }
+                                else if (strcmp(key, "end-bit") == 0)
+                                {
+                                    const char *end_bit_str = json_object_get_string(sensorSettingObject, JSON_KEY_SENSORGROUPS_CONF_SENSOR_VALUE);
+                                    // TODO find more robust method
+                                    end_bit = atoi(end_bit_str);
+                                }
+                                else
+                                {
+                                    for (size_t j = 0; j < i; j++)
+                                    {
+                                        hts_delete(sensors_table, sensor_list[j]);
+                                    }
+                                    create_error_message(values, "One of the sensors of the sensorgroup is not correct");
+                                    return ERROR;
+                                }
+                            }
+                            else
+                            {
+                                for (size_t j = 0; j < i; j++)
+                                {
+                                    hts_delete(sensors_table, sensor_list[j]);
+                                }
+                                create_error_message(values, "One of the sensors of the sensorgroup is not correct");
+                                return ERROR;
+                            }
+                        }
                     }
                     else
                     {
-                        create_error_message(values, "There is no key key in the connectionSettings array.");
+                        for (size_t j = 0; j < i; j++)
+                        {
+                            hts_delete(sensors_table, sensor_list[j]);
+                        }
+                        create_error_message(values, "One of the sensors of the sensorgroup is not correct");
                         return ERROR;
                     }
-                    if (json_object_get_value(sensorSettingObject, JSON_KEY_SENSORGROUPS_CONF_VALUE) != NULL)
+
+                    if (can_id == -1 || init_bit == -1 || end_bit == -1)
                     {
-                        char *value = strdup(json_object_get_string(sensorSettingObject, JSON_KEY_SENSORGROUPS_CONF_VALUE));
-                        printf("\t\t\t\t\t\t\"%s\": %s\n", JSON_KEY_SENSORGROUPS_CONF_VALUE, value);
-                    }
-                    else
-                    {
-                        create_error_message(values, "There is no value key in the connectionSettings array.");
+                        for (size_t j = 0; j < i; j++)
+                        {
+                            hts_delete(sensors_table, sensor_list[j]);
+                        }
+                        create_error_message(values, "One of the sensors of the sensorgroup is not correct");
                         return ERROR;
                     }
 
-                    if (i < sensorSettingsCount - 1)
-                    {
-                        printf("\t\t\t\t},\n");
-                    }
-                    else
-                    {
-                        printf("\t\t\t\t}\n");
-                    }
-
+                    sens->can_id = can_id;
+                    sens->init_bit = init_bit;
+                    sens->end_bit = end_bit;
+                    sens->sampling_rate = json_object_get_number(sensors_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_SAMPLING_RATE);
+                    sens->value = "";
+                    sens->timestamp = 0;
+                    hts_put(sensors_table, sens->id, sens);
                 }
-
-                printf("\t\t\t],\n");
+                else
+                {
+                    for (size_t j = 0; j < i; j++)
+                    {
+                        hts_delete(sensors_table, sensor_list[j]);
+                    }
+                    create_error_message(values, "One of the sensors of the sensorgroup already existed");
+                    return ERROR;
+                }
+                
+                sensor_list[i] = malloc(sizeof(char));
+                strcpy(sensor_list[i], sensor_id);
             }
             else
             {
-                create_error_message(values, "There is no sensor-settings key in the connection-settings array.");
+                create_error_message(values, "The sensorgroup information is not valid");
                 return ERROR;
-            }
-
-            if (json_object_get_value(sensorObject, JSON_KEY_SENSORGROUPS_CONF_SAMPLING_RATE) != NULL)
-            {
-                int samplingRate = json_object_get_number(sensorObject, JSON_KEY_SENSORGROUPS_CONF_SAMPLING_RATE);
-                printf("\t\t\t\"%s\": %d\n", JSON_KEY_SENSORGROUPS_CONF_SAMPLING_RATE, samplingRate);
-            }
-            else
-            {
-                create_error_message(values, "There is no sampling-rate key in the connection-settings array.");
-                return ERROR;
-            }
-
-            if (i < sensorCount - 1)
-            {
-                printf("\t\t},\n");
-            }
-            else
-            {
-                printf("\t\t}\n");
             }
         }
+
+        sg->id = id;
+        sg->publish_rate = publishRate;
+        sg->sensorcount = sensorsCount;
+        sg->sensor_list = sensor_list;
+        htsg_put(sensorgroup_table, sg->id, sg);
+
+        strcpy(*values, "");
+        return OK;
     }
     else
     {
-        create_error_message(values, "There is no connection-settings key in the payload json.");
+        create_error_message(values, "The sensorgroup information is not valid");
         return ERROR;
     }
-
-
-    printf("\t]\n");
-    printf("}\n");
-    strcpy(*values, "");
-    return OK;
 }
 
-// TODO PUT SENSORGROUP SUBSCRIPTION
-// TODO add functionality
+// TODO find a way for rollback if it is not succesful
 int update_sensorgroups_configuration(char **values, query_pairs *queries)
 {
-    // TODO Update setup data & error control
-    // TODO add query support
-    printf("Update subscriptions\n");
-    // TODO Create setup data & error control
-
-    // TODO parse query, for now, just print
-    query_pairs *tmp;
-    tmp = queries;
-    char* id = NULL;
-    while(tmp != NULL)
+    printf("Update sensorgroups subscriptions\n");
+    int response = delete_sensorgroups_configuration(values, queries);
+    if (response != OK)
     {
-        if(strcmp(tmp->name, QUERY_KEY_ID) == 0)
-        {
-            id = strdup(tmp->value);
-            printf("\tName: %s\n", tmp->name);
-            printf("\tValue: %s\n", id);
-            printf("ID: %s\n", id);
-        }
-        else
-        {
-            printf("\tName: %s\n", tmp->name);
-            printf("\tValue: %s\n", tmp->value);
-        }
-        
-        tmp = tmp->next;
+        return response;
     }
-    if (id == NULL)
+    response = create_sensorgroups_configuration(values);
+    if (response != OK)
     {
-        create_error_message(values, "There is no id query.");
-        return ERROR;
+        return response;
     }
 
-    JSON_Value *jval = json_parse_string(*values);
-    JSON_Object *jobj = json_value_get_object(jval);
-
-    if (json_object_get_value(jobj, JSON_KEY_SENSORGROUPS_CONF_ID) != NULL)
-    {
-        char *id = strdup(json_object_get_string(jobj, JSON_KEY_SENSORGROUPS_CONF_ID));
-        printf("{\n\t\"%s\": %s,\n", JSON_KEY_SENSORGROUPS_CONF_ID, id);
-    }
-    else
-    {
-        create_error_message(values, "There is no sensorgroup-id key in the payload json.");
-        return ERROR;
-    }
-
-    if (json_object_get_value(jobj, JSON_KEY_SENSORGROUPS_CONF_PUBLISH_RATE) != NULL)
-    {
-        int publishRate = json_object_get_number(jobj, JSON_KEY_SENSORGROUPS_CONF_PUBLISH_RATE);
-        printf("\t\"%s\": \"%d\",\n", JSON_KEY_SENSORGROUPS_CONF_PUBLISH_RATE, publishRate);
-    }
-    else
-    {
-        create_error_message(values, "There is no publish-rate key in the payload json.");
-        return ERROR;
-    }
-
-    if (json_object_get_value(jobj, JSON_KEY_SENSORGROUPS_CONF_SENSOR_LIST) != NULL)
-    {
-        printf("\t\"%s\": [\n", JSON_KEY_SENSORGROUPS_CONF_SENSOR_LIST);
-
-        JSON_Array *sensorList = json_object_get_array(jobj, JSON_KEY_SENSORGROUPS_CONF_SENSOR_LIST);
-        size_t sensorCount = json_array_get_count(sensorList);
-        for (size_t i = 0; i < sensorCount; i++)
-        {
-            printf("\t\t{\n");
-
-            JSON_Value *sensor = json_array_get_value(sensorList, i);
-            JSON_Object *sensorObject = json_value_get_object(sensor);
-
-            if (json_object_get_value(sensorObject, JSON_KEY_SENSORGROUPS_CONF_SENSOR_ID) != NULL)
-            {
-                char *sensorId = strdup(json_object_get_string(sensorObject, JSON_KEY_SENSORGROUPS_CONF_SENSOR_ID));
-                printf("\t\t\t\"%s\": %s,\n", JSON_KEY_SENSORGROUPS_CONF_SENSOR_ID, sensorId);
-            }
-            else
-            {
-                create_error_message(values, "There is no sensor-id key in the connectionSettings array.");
-                return ERROR;
-            }
-
-            if (json_object_get_value(sensorObject, JSON_KEY_SENSORGROUPS_CONF_SENSOR_NAME) != NULL)
-            {
-                char *sensorName = strdup(json_object_get_string(sensorObject, JSON_KEY_SENSORGROUPS_CONF_SENSOR_NAME));
-                printf("\t\t\t\"%s\": %s,\n", JSON_KEY_SENSORGROUPS_CONF_SENSOR_NAME, sensorName);
-            }
-            else
-            {
-                create_error_message(values, "There is no sensor-name key in the connectionSettings array.");
-                return ERROR;
-            }
-
-            if (json_object_get_value(sensorObject, JSON_KEY_SENSORGROUPS_CONF_SENSOR_TYPE) != NULL)
-            {
-                char *sensorType = strdup(json_object_get_string(sensorObject, JSON_KEY_SENSORGROUPS_CONF_SENSOR_TYPE));
-                printf("\t\t\t\"%s\": %s,\n", JSON_KEY_SENSORGROUPS_CONF_SENSOR_TYPE, sensorType);
-            }
-            else
-            {
-                create_error_message(values, "There is no sensor-type key in the connectionSettings array.");
-                return ERROR;
-            }
-
-            if (json_object_get_value(sensorObject, JSON_KEY_SENSORGROUPS_CONF_SENSOR_SETTINGS) != NULL)
-            {
-                printf("\t\t\t\"%s\": [\n", JSON_KEY_SENSORGROUPS_CONF_SENSOR_SETTINGS);
-                
-                JSON_Array *sensorSettingsList = json_object_get_array(sensorObject, JSON_KEY_SENSORGROUPS_CONF_SENSOR_SETTINGS);
-                size_t sensorSettingsCount = json_array_get_count(sensorSettingsList);
-
-                for (size_t i = 0; i < sensorSettingsCount; i++)
-                {
-                    printf("\t\t\t\t{\n");
-
-                    JSON_Value *sensorSetting = json_array_get_value(sensorSettingsList, i);
-                    JSON_Object *sensorSettingObject = json_value_get_object(sensorSetting);
-
-                    if (json_object_get_value(sensorSettingObject, JSON_KEY_SENSORGROUPS_CONF_KEY) != NULL)
-                    {
-                        char *key = strdup(json_object_get_string(sensorSettingObject, JSON_KEY_SENSORGROUPS_CONF_KEY));
-                        printf("\t\t\t\t\t\t\"%s\": %s,\n", JSON_KEY_SENSORGROUPS_CONF_KEY, key);
-                    }
-                    else
-                    {
-                        create_error_message(values, "There is no key key in the connectionSettings array.");
-                        return ERROR;
-                    }
-                    if (json_object_get_value(sensorSettingObject, JSON_KEY_SENSORGROUPS_CONF_VALUE) != NULL)
-                    {
-                        char *value = strdup(json_object_get_string(sensorSettingObject, JSON_KEY_SENSORGROUPS_CONF_VALUE));
-                        printf("\t\t\t\t\t\t\"%s\": %s\n", JSON_KEY_SENSORGROUPS_CONF_VALUE, value);
-                    }
-                    else
-                    {
-                        create_error_message(values, "There is no value key in the connectionSettings array.");
-                        return ERROR;
-                    }
-
-                    if (i < sensorSettingsCount - 1)
-                    {
-                        printf("\t\t\t\t},\n");
-                    }
-                    else
-                    {
-                        printf("\t\t\t\t}\n");
-                    }
-
-                }
-
-                printf("\t\t\t],\n");
-            }
-            else
-            {
-                create_error_message(values, "There is no sensor-settings key in the connectionSettings array.");
-                return ERROR;
-            }
-
-            if (json_object_get_value(sensorObject, JSON_KEY_SENSORGROUPS_CONF_SAMPLING_RATE) != NULL)
-            {
-                int samplingRate = json_object_get_number(sensorObject, JSON_KEY_SENSORGROUPS_CONF_SAMPLING_RATE);
-                printf("\t\t\t\"%s\": %d\n", JSON_KEY_SENSORGROUPS_CONF_SAMPLING_RATE, samplingRate);
-            }
-            else
-            {
-                create_error_message(values, "There is no sampling-rate key in the connectionSettings array.");
-                return ERROR;
-            }
-
-            if (i < sensorCount - 1)
-            {
-                printf("\t\t},\n");
-            }
-            else
-            {
-                printf("\t\t}\n");
-            }
-        }
-    }
-    else
-    {
-        create_error_message(values, "There is no connection-settings key in the payload json.");
-        return ERROR;
-    }
-
-    printf("\t]\n");
-    printf("}\n");
     strcpy(*values, "");
     return OK;
 }
 
-// TODO GET SENSORGROUP SUBSCRIPTION
 int read_sensorgroups_configuration(char **readings)
 {
-    
+    printf("Read Sensorgroups Configuration\n");
+    extern HashTableSensorgroups *sensorgroup_table;
+    extern HashTableSensors *sensors_table;
+
     JSON_Value *general_branch = json_value_init_array();
     JSON_Array *general_leaves = json_value_get_array(general_branch);
 
-    // TODO Loop for the size of the sensorgroup table
-    for (size_t i = 0; i < 5; i++)
+    ListSensorgroups *listptr;
+    for (unsigned int i = 0; i < sensorgroup_table->size; i++)
     {
-        JSON_Value *leaf_value = json_value_init_object();
-        JSON_Object *leaf_object = json_value_get_object(leaf_value);
+        listptr = sensorgroup_table->array[i];
 
-        // TODO Add data from the tables
-        json_object_set_string(leaf_object, JSON_KEY_SENSORGROUPS_CONF_ID, "string");
-        json_object_set_number(leaf_object, JSON_KEY_SENSORGROUPS_CONF_PUBLISH_RATE, 0);
-
-        JSON_Value *variable_list_branch = json_value_init_array();
-        JSON_Array *variable_list_leaves = json_value_get_array(variable_list_branch);
-        JSON_Value *variable_leaf_value;
-        JSON_Object *variable_leaf_object;
-
-        // TODO Loop for sensor-list size
-        for (size_t j = 0; j < 2; j++)
+        while (listptr != NULL) 
         {
-            variable_leaf_value = json_value_init_object();
-            variable_leaf_object = json_value_get_object(variable_leaf_value);
+            sensorgroup *sg = malloc(sizeof(sensorgroup));
+            sg = listptr->sensorgroup;
 
-            json_object_set_string(variable_leaf_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_ID, "string");
-            json_object_set_string(variable_leaf_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_NAME, "string");
-            json_object_set_string(variable_leaf_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_TYPE, "Uint8");
+            JSON_Value *leaf_value = json_value_init_object();
+            JSON_Object *leaf_object = json_value_get_object(leaf_value);
 
-            JSON_Value *variable_settings_branch = json_value_init_array();
-            JSON_Array *variable_settings_leaves = json_value_get_array(variable_settings_branch);
+            json_object_set_string(leaf_object, JSON_KEY_SENSORGROUPS_CONF_ID, sg->id);
+            json_object_set_number(leaf_object, JSON_KEY_SENSORGROUPS_CONF_PUBLISH_RATE, sg->publish_rate);
 
-            // TODO Loop for sensor-settings size
-            for (size_t k = 0; k < 2; k++)
+            JSON_Value *sensors_array_value = json_value_init_array();
+            JSON_Array *sensors_array_object = json_value_get_array(sensors_array_value);
+            for (int i = 0; i < sg->sensorcount; i++)
             {
-                JSON_Value *variable_settings_leaf_value = json_value_init_object();
-                JSON_Object *variable_settings_leaf_object = json_value_get_object(variable_settings_leaf_value);
-                // TODO Get data from the table
-                json_object_set_string(variable_settings_leaf_object, JSON_KEY_SENSORGROUPS_CONF_KEY, "string");
-                json_object_set_string(variable_settings_leaf_object, JSON_KEY_SENSORGROUPS_CONF_VALUE, "string");
-                json_array_append_value(variable_settings_leaves, variable_settings_leaf_value);
-            }
-            
-            json_object_set_value(variable_leaf_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_SETTINGS, variable_settings_branch);
+                sensor *sens = hts_get(sensors_table, sg->sensor_list[i]);
+                JSON_Value *sensor_value = json_value_init_object();
+                JSON_Object *sensor_object = json_value_get_object(sensor_value);
+                json_object_set_string(sensor_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_ID, sens->id);
+                json_object_set_string(sensor_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_NAME, sens->name);
+                json_object_set_string(sensor_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_TYPE, sens->type);
 
-            // TODO Get data from the table
-            json_object_set_number(variable_leaf_object, JSON_KEY_SENSORGROUPS_CONF_SAMPLING_RATE, 0);
-            json_array_append_value(variable_list_leaves, variable_leaf_value);
+                JSON_Value *settings_array_value = json_value_init_array();
+                JSON_Array *settings_array_object = json_value_get_array(settings_array_value);
+
+                JSON_Value *settings_value = json_value_init_object();
+                JSON_Object *settings_object = json_value_get_object(settings_value);
+                json_object_set_string(settings_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_KEY, "can-id");
+                char value[20];
+                sprintf(value, "%d", sens->can_id);
+                json_object_set_string(settings_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_VALUE, value);
+                json_array_append_value(settings_array_object, settings_value);
+
+                settings_value = json_value_init_object();
+                settings_object = json_value_get_object(settings_value);
+                json_object_set_string(settings_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_KEY, "init-bit");
+                sprintf(value, "%d", sens->init_bit);
+                json_object_set_string(settings_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_VALUE, value);
+                json_array_append_value(settings_array_object, settings_value);
+
+                settings_value = json_value_init_object();
+                settings_object = json_value_get_object(settings_value);
+                json_object_set_string(settings_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_KEY, "end-bit");
+                sprintf(value, "%d", sens->end_bit);
+                json_object_set_string(settings_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_VALUE, value);
+                json_array_append_value(settings_array_object, settings_value);
+
+                json_object_set_value(sensor_object, JSON_KEY_SENSOR_CONF_SETTINGS, settings_array_value);
+
+                json_object_set_number(sensor_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_SAMPLING_RATE, sens->sampling_rate);
+                json_array_append_value(sensors_array_object, sensor_value);
+            }
+
+            json_object_set_value(leaf_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_LIST, sensors_array_value);
+            json_array_append_value(general_leaves, leaf_value);
+            listptr = listptr->next;
         }
-        json_object_set_value(leaf_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_LIST, variable_list_branch);
-        json_array_append_value(general_leaves, leaf_value);
     }
 
     *readings = malloc(strlen(json_serialize_to_string(general_branch)) * sizeof(char));
@@ -927,13 +789,11 @@ int read_sensorgroups_configuration(char **readings)
 
 }
 
-// TODO DELETE SENSORGROUP SUBSCRIPTION
-// TODO add functionality
+// TODO find a way for rollback if it is not succesful
 int delete_sensorgroups_configuration(char **values, query_pairs * queries)
 {
     printf("Delete subscriptions\n");
 
-    // TODO parse query, for now, just print
     query_pairs *tmp;
     tmp = queries;
     char* id = NULL;
@@ -942,24 +802,45 @@ int delete_sensorgroups_configuration(char **values, query_pairs * queries)
         if(strcmp(tmp->name, QUERY_KEY_ID) == 0)
         {
             id = strdup(tmp->value);
-            printf("\tName: %s\n", tmp->name);
-            printf("\tValue: %s\n", id);
-            printf("ID: %s\n", id);
-        }
-        else
-        {
-            printf("\tName: %s\n", tmp->name);
-            printf("\tValue: %s\n", tmp->value);
+            printf("Delete sensorgroup with id %s\n", id);
+            extern HashTableSensorgroups *sensorgroup_table;
+            sensorgroup *sg = htsg_get(sensorgroup_table, id);
+            if (sg != NULL)
+            {
+                for (size_t i = 0; i < sg->sensorcount; i++)
+                {
+                    sensor *sens = hts_delete(sensors_table, sg->sensor_list[i]);
+                    if (sens == NULL)
+                    {
+                        create_error_message(values, "Error deleting a sensor of the sensorgroup");
+                        return ERROR;
+                    }
+                }
+                sg = htsg_delete(sensorgroup_table, id);
+                if (sg == NULL)
+                {
+                    create_error_message(values, "Error deleting the sensorgroup");
+                    return ERROR;
+                }
+            }
+            else
+            {
+                char message[50];
+                sprintf(message, "There is no sensorgroup with id %s", id);
+                printf("%s\n", message);
+                create_error_message(values, message);
+                return ERROR;
+            }
         }
         
         tmp = tmp->next;
     }
     if (id == NULL)
     {
+        printf("Delete sensor request without id\n");
         create_error_message(values, "There is no id query.");
         return ERROR;
     }
-    
     return OK;
 }
 
@@ -1006,7 +887,6 @@ int read_monitoring_agent_status(char **readings)
 
 int cmd_execute_configuration(char **values)
 {
-
     JSON_Value *jval = json_parse_string(*values);
     JSON_Object *jobj = json_value_get_object(jval);
     extern ms_status status;
@@ -1061,11 +941,9 @@ int cmd_execute_configuration(char **values)
     }
 }
 
-// TODO GET SENSORS MEASUREMENTS
 int read_sensor_measurements(char **readings, query_pairs *queries)
 {
     printf("Read Sensor Values\n");
-    // TODO for now, just print the query
     query_pairs *tmp;
     tmp = queries;
     char* sensor_id;
@@ -1077,7 +955,6 @@ int read_sensor_measurements(char **readings, query_pairs *queries)
             if(strcmp(tmp->name, QUERY_KEY_ID) == 0)
             {
                 sensor_id = strdup(tmp->value);
-                // TODO Buscar el sensor en el hashtable
 
                 extern HashTableSensors *sensors_table;
                 sensor *sens = hts_get(sensors_table, sensor_id);
@@ -1133,11 +1010,13 @@ int read_sensor_measurements(char **readings, query_pairs *queries)
 
         unsigned int i;
         ListSensors *listptr;
-        for (i = 0; i < sensors_table->size; ++i) {
+        for (i = 0; i < sensors_table->size; ++i) 
+        {
 
             listptr = sensors_table->array[i];
 
-            while (listptr != NULL) {
+            while (listptr != NULL) 
+            {
                 sensor *sensor = malloc(sizeof *sensor);
                 sensor = listptr->sensor;
                     

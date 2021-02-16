@@ -4,6 +4,11 @@
 #include "implementation/hash_table.h"
 #include "implementation/impl.h"
 
+// Aux for dev only:
+#define EXISTS_CAN 0
+#define DEV 1
+#define SENSORS_AVAILABLE 0
+
 // static char *mqtt_discovery_topic = "adms/v1/discovery";
 // static char *mqtt_data_topic = "adms/v1/monitor-agent/data";
 
@@ -35,11 +40,13 @@ int getInfoFromEnvironmentVariables (void);
 int read_config_file(char *config_file);
 
 // TODO Delete
+#if DEV
 void print_sensorgroup(sensorgroup *sensorgroup);
 void print_sensor(sensor *sensor);
 void create_dummy_struct(void);
 void print_struct(void);
 void create_test_struct(void);
 int print_test_table(void);
+#endif
 
 #endif

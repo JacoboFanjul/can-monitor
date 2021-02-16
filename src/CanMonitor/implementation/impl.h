@@ -36,8 +36,6 @@
 #define CAN_INTERFACE "can0"
 #define DEF_GW_NAME "Target-1"
 #define DEF_SVC_NAME "adeptness-service"
-// TODO DELETE POLLING INTERVAL
-#define DEF_POLLING_INTERVAL_S 5
 #define DEF_MAX_JSON_SIZE 1000
 #define DEF_MAX_GW_ID_SIZE 50
 #define DEF_BUFF_SIZE 4096
@@ -69,9 +67,9 @@
 #define JSON_KEY_SENSORGROUPS_CONF_SENSOR_NAME "sensor-name"
 #define JSON_KEY_SENSORGROUPS_CONF_SENSOR_TYPE "sensor-type"
 #define JSON_KEY_SENSORGROUPS_CONF_SENSOR_SETTINGS "sensor-settings"
-#define JSON_KEY_SENSORGROUPS_CONF_KEY "key"
-#define JSON_KEY_SENSORGROUPS_CONF_VALUE "value"
-#define JSON_KEY_SENSORGROUPS_CONF_SAMPLING_RATE "sampling-rate"
+#define JSON_KEY_SENSORGROUPS_CONF_SENSOR_KEY "key"
+#define JSON_KEY_SENSORGROUPS_CONF_SENSOR_VALUE "value"
+#define JSON_KEY_SENSORGROUPS_CONF_SENSOR_SAMPLING_RATE "sampling-rate"
     
 #define JSON_KEY_MONITORING_AGENT_STATUS "status"
 #define JSON_KEY_CMD_EXECUTE_ORDER "order"
@@ -92,7 +90,6 @@ typedef struct myAdeptnessService_state
     char gw_id[DEF_MAX_GW_ID_SIZE];
     char json[DEF_MAX_JSON_SIZE];
     uint64_t logical_data;
-    unsigned int polling_interval;
     pid_t main_thread_pid;
 } myAdeptnessService_state;
 
