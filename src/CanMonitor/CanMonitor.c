@@ -562,10 +562,10 @@ int main(int argc, char *argv[])
 
         // TODO delete, only for dev
         #if AUTOSTART
-        if (0)
-        #else
-        if (status == running)
+        status == running;        
         #endif
+
+        if (status == configured || status == running)
         {
             if (EXISTS_CAN == 0)
             {
@@ -609,7 +609,10 @@ int main(int argc, char *argv[])
                     }
                 }
             }
-
+        }
+            
+        if (status == running)
+        {
             ListSensorgroups *listptr;
             for (unsigned int i = 0; i < sensorgroup_table->size; i++)
             {
