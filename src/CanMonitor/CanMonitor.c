@@ -19,10 +19,10 @@
 #define SENSORS_TABLE_SIZE 2
 #define SENSORGROUPS_TABLE_SIZE 3
 
-#define DISCOVERY_TOPIC "adms/v2/discovery"
 // TODO delete test part
-#define DATA_TOPIC_PREFIX "test/adms/v2/monitor-agent"
-
+#define MQTT_API_PREFIX "test/adms/v2"
+#define DATA_TOPIC_PREFIX MQTT_API_PREFIX "/monitor-agent"
+#define DISCOVERY_TOPIC MQTT_API_PREFIX "/discovery"
 
 //static char *mqtt_data_topic = "adms/v2/monitor-agent/urn:ngis.ld:DeployableComp:MonitorCan01Edge01/urn:ngis.ld:SensorGroup:MonitorCAN01_Group01";
 
@@ -288,7 +288,7 @@ void create_dummy_struct()
     // 1 sensorgroup with 1 sensor
     sensorgroup *sg = malloc(sizeof(sensorgroup));
     sg->id = strdup("id_11");
-    sg->publish_rate = 11;
+    sg->publish_rate = 11000;
     sg->last_publish_time = (struct timeval){0};
 
     sensor1 = malloc(sizeof (sensor));
@@ -313,7 +313,7 @@ void create_dummy_struct()
     // 1 sensorgroup with 2 sensors
     sg = malloc(sizeof(sensorgroup));
     sg->id = strdup("id_22");
-    sg->publish_rate = 22;
+    sg->publish_rate = 5000;
     sg->last_publish_time = (struct timeval){0};
 
     sensor1 = malloc(sizeof (sensor));
@@ -405,7 +405,7 @@ void print_struct()
                 
             printf("ID: %s", sg->id);
             printf(". Publish_rate: %d", sg->publish_rate);
-            printf(". Last published: %ld", sg->last_publish_time.tv_sec * 1000000 + sg->last_publish_time.tv_usec);
+            printf(". Last published: %f", sg->last_publish_time.tv_sec * 1.0 + (sg->last_publish_time.tv_usec / 1000) / 1000.0);
 
             printf(". Sensor count: %ld", sg->sensorcount);
             printf(". Sensorlist:");
@@ -562,22 +562,12 @@ int main(int argc, char *argv[])
 
         // TODO delete, only for dev
         #if AUTOSTART
-        status == running;        
+        status = running;        
         #endif
 
         if (status == configured || status == running)
         {
-            if (EXISTS_CAN == 0)
-            {
-                // TODO recorrer el hashtable de sensors e ir actualizando mensajes
-                struct timeval tv;
-                gettimeofday(&tv, NULL);
-
-                printf("Create payload.\n");
-                double lift01Speed = ((double) rand()*(2.0-0.5)/(double)RAND_MAX-0.5);
-                int Lift01FloorLocation = rand() % 10;
-            }
-            else
+            if (EXISTS_CAN != 0)
             {
                 // Init CAN frame identifier and Extended/Standard flag:
                 struct can_frame frame;
@@ -623,8 +613,12 @@ int main(int argc, char *argv[])
                     sensorgroup *sg = malloc(sizeof(sensorgroup));
                     sg = listptr->sensorgroup;
 
-                    
-                    if (0 /*TODO tiempo_ahora - last_published >=  publish_rate*/ )
+                    struct timeval current_time;  
+                    gettimeofday (&current_time, NULL);
+
+                    uint64_t current_ms = current_time.tv_sec * 1000 + current_time.tv_usec / 1000;
+                    uint64_t last_published_ms = sg->last_publish_time.tv_sec * 1000 + sg->last_publish_time.tv_usec / 1000;
+                    if (current_ms - last_published_ms >= sg->publish_rate)
                     {
                         char mqtt_data_topic[200];
                         sprintf(mqtt_data_topic, "%s/%s/%s", DATA_TOPIC_PREFIX, monitor_id, sg->id);
@@ -634,9 +628,9 @@ int main(int argc, char *argv[])
                         printf("Payload created: %s\n", payload);
                         
                         publish(mqtt_data_topic, strdup(payload));
-                        printf("Publish on [%s]: %s\n", mqtt_data_topic, payload);
-
-                        // TODO actualizar last_published
+                        printf("[%ld] Publish on [%s]: %s\n", current_ms, mqtt_data_topic, payload);
+                        sg->last_publish_time.tv_sec = current_time.tv_sec;
+                        sg->last_publish_time.tv_usec = current_time.tv_usec;
 
                     }
                     listptr = listptr->next;
@@ -644,7 +638,7 @@ int main(int argc, char *argv[])
             }
         }
         // TODO find the correct number for sleep
-        sleep(2);
+        sleep(1);
     }
 
     hts_free(sensors_table);

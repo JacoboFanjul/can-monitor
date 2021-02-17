@@ -705,6 +705,7 @@ int create_sensorgroups_configuration(char **values)
         sg->publish_rate = publishRate;
         sg->sensorcount = sensorsCount;
         sg->sensor_list = sensor_list;
+        sg->last_publish_time = (struct timeval){0};
         htsg_put(sensorgroup_table, sg->id, sg);
 
         strcpy(*values, "");

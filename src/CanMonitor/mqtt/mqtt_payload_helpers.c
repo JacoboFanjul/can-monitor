@@ -76,6 +76,7 @@ const char * create_data_payload(sensorgroup *sg)
         json_object_set_string(sensor_object, "n", strdup(sens->name));
         json_object_set_string(sensor_object, "v", strdup(sens->value));
         json_object_set_number(sensor_object, "bt", sens->timestamp);
+
         json_array_append_value(leaves, sensor_value);
     }
 

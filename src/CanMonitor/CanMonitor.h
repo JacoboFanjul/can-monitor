@@ -7,12 +7,7 @@
 // Aux for dev only:
 #define EXISTS_CAN 0
 #define DEV 1
-#define AUTOSTART 0
-
-// static char *mqtt_discovery_topic = "adms/v1/discovery";
-// static char *mqtt_data_topic = "adms/v1/monitor-agent/data";
-
-//enum ms_status{ready, configured, running, error, exit_ms};
+#define AUTOSTART 1
 
 extern ms_status status;
 
