@@ -20,9 +20,11 @@
 #define SENSORGROUPS_TABLE_SIZE 3
 
 #define DISCOVERY_TOPIC "adms/v2/discovery"
+// TODO delete test part
+#define DATA_TOPIC_PREFIX "test/adms/v2/monitor-agent"
 
 
-static char *mqtt_data_topic = "adms/v2/monitor-agent/urn:ngis.ld:DeployableComp:MonitorCan01Edge01/urn:ngis.ld:SensorGroup:MonitorCAN01_Group01";
+//static char *mqtt_data_topic = "adms/v2/monitor-agent/urn:ngis.ld:DeployableComp:MonitorCan01Edge01/urn:ngis.ld:SensorGroup:MonitorCAN01_Group01";
 
 /* Global vars */
 ms_status status = 0;
@@ -303,7 +305,7 @@ void create_dummy_struct()
 
     sg->sensorcount = 1;
     char **sensor_list = malloc(sg->sensorcount * sizeof(char*));
-    sensor_list[0] = malloc(sizeof(char));
+    sensor_list[0] = malloc(sizeof(char*));
     strcpy(sensor_list[0], "id_3");
     sg->sensor_list = sensor_list;
     htsg_put(sensorgroup_table, sg->id, sg);
@@ -340,10 +342,9 @@ void create_dummy_struct()
 
     sg->sensorcount = 2;
     sensor_list = malloc(sg->sensorcount * sizeof(char*));
-    // char *sensor_list2[] = {"id_4", "id_5"};
-    sensor_list[0] = malloc(sizeof(char));
+    sensor_list[0] = malloc(sizeof(char*));
     strcpy(sensor_list[0], "id_4");
-    sensor_list[1] = malloc(sizeof(char));
+    sensor_list[1] = malloc(sizeof(char*));
     strcpy(sensor_list[1], "id_5");
     sg->sensor_list = sensor_list;
     htsg_put(sensorgroup_table, sg->id, sg);
@@ -538,7 +539,6 @@ int main(int argc, char *argv[])
     print_struct();
     #endif
 
-
     while (status != exit_ms)
     {
         if (restart_mqtt != 0)
@@ -560,61 +560,83 @@ int main(int argc, char *argv[])
             printf("-- REST port reconfigured\n");
         }
 
-        //if (status == running)
-        if (EXISTS_CAN == 0)
+        // TODO delete, only for dev
+        #if AUTOSTART
+        if (0)
+        #else
+        if (status == running)
+        #endif
         {
-            if(0)
+            if (EXISTS_CAN == 0)
             {
-                // TODO recorrer el hashtable de sensorgroup y crear topic y payload para cada mensaje
+                // TODO recorrer el hashtable de sensors e ir actualizando mensajes
                 struct timeval tv;
                 gettimeofday(&tv, NULL);
 
                 printf("Create payload.\n");
                 double lift01Speed = ((double) rand()*(2.0-0.5)/(double)RAND_MAX-0.5);
                 int Lift01FloorLocation = rand() % 10;
-                const char *payload = create_data_payload(lift01Speed, Lift01FloorLocation);
-                printf("Payload created: %s\n", payload);
-
-                publish(mqtt_data_topic, strdup(payload));
-
-                printf("Sent JSON at [%lu]: %s\n", tv.tv_sec * 1000 + tv.tv_usec / 1000, payload);
             }
-        }
-        else
-        {
-            // Init CAN frame identifier and Extended/Standard flag:
-            struct can_frame frame;
-            int ExtFlag;
-            uint32_t can_id;
-
-            ExtFlag = can_read(sockfd, &frame);
-
-            struct timeval tv;
-            gettimeofday(&tv, NULL);
-
-            //if ((ExtFlag != 0) && (frame.can_id == 0x00040030))
-            if (ExtFlag != 0)
+            else
             {
-                if (ExtFlag == 2) // Extended Frame Format
-                {
-                    can_id = frame.can_id & CAN_EFF_MASK;
-                }
-                else // Standard Frame Format
-                {
-                    can_id = frame.can_id & CAN_SFF_MASK;
-                }
-                if (can_id == 0x00040030)
-                {
-                    printf("CAN ID: %08X\n", can_id);
-                    printf("Create payload.\n");
-                    double lift01Speed = ((double) rand()*(2.0-0.5)/(double)RAND_MAX-0.5);
-                    int Lift01FloorLocation = frame.data[2] & 0x3F;
-                    printf("Lift at floor %d\n", Lift01FloorLocation);
-                    const char *payload = create_data_payload(lift01Speed, Lift01FloorLocation);
-                    printf("Payload created: %s\n", payload);
+                // Init CAN frame identifier and Extended/Standard flag:
+                struct can_frame frame;
+                int ExtFlag;
+                uint32_t can_id;
 
-                    publish(mqtt_data_topic, strdup(payload));
-                    printf("Sent JSON at [%lu]: %s\n", tv.tv_sec * 1000 + tv.tv_usec / 1000, payload);
+                ExtFlag = can_read(sockfd, &frame);
+
+                struct timeval tv;
+                gettimeofday(&tv, NULL);
+
+                //if ((ExtFlag != 0) && (frame.can_id == 0x00040030))
+                if (ExtFlag != 0)
+                {
+                    if (ExtFlag == 2) // Extended Frame Format
+                    {
+                        can_id = frame.can_id & CAN_EFF_MASK;
+                    }
+                    else // Standard Frame Format
+                    {
+                        can_id = frame.can_id & CAN_SFF_MASK;
+                    }
+                    if (can_id == 0x00040030)
+                    {
+                        printf("CAN ID: %08X\n", can_id);
+                        double lift01Speed = ((double) rand()*(2.0-0.5)/(double)RAND_MAX-0.5);
+                        int Lift01FloorLocation = frame.data[2] & 0x3F;
+                        printf("Lift at floor %d\n", Lift01FloorLocation);
+                    }
+                }
+            }
+
+            ListSensorgroups *listptr;
+            for (unsigned int i = 0; i < sensorgroup_table->size; i++)
+            {
+                listptr = sensorgroup_table->array[i];
+
+                while (listptr != NULL) 
+                {
+                    sensorgroup *sg = malloc(sizeof(sensorgroup));
+                    sg = listptr->sensorgroup;
+
+                    
+                    if (0 /*TODO tiempo_ahora - last_published >=  publish_rate*/ )
+                    {
+                        char mqtt_data_topic[200];
+                        sprintf(mqtt_data_topic, "%s/%s/%s", DATA_TOPIC_PREFIX, monitor_id, sg->id);
+                        printf("Topic created: %s\n", mqtt_data_topic);
+
+                        const char *payload = create_data_payload(sg);
+                        printf("Payload created: %s\n", payload);
+                        
+                        publish(mqtt_data_topic, strdup(payload));
+                        printf("Publish on [%s]: %s\n", mqtt_data_topic, payload);
+
+                        // TODO actualizar last_published
+
+                    }
+                    listptr = listptr->next;
                 }
             }
         }

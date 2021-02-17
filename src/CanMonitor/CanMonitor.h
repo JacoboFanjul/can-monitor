@@ -8,6 +8,7 @@
 #define EXISTS_CAN 0
 #define DEV 1
 #define SENSORS_AVAILABLE 0
+#define AUTOSTART 1
 
 // static char *mqtt_discovery_topic = "adms/v1/discovery";
 // static char *mqtt_data_topic = "adms/v1/monitor-agent/data";

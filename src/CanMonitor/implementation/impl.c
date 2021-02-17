@@ -665,7 +665,7 @@ int create_sensorgroups_configuration(char **values)
                     return ERROR;
                 }
                 
-                sensor_list[i] = malloc(sizeof(char));
+                sensor_list[i] = malloc(sizeof(char*));
                 strcpy(sensor_list[i], sensor_id);
             }
             else
