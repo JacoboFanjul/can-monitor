@@ -281,8 +281,6 @@ int update_connection_configuration(char **values)
     }
 }
 
-// TODO To discuss the integration between sensors and sensorgroups
-#if SENSORS_AVAILABLE
 int create_sensors_configuration(char **values)
 {
     printf("Create sensor configuration\n");
@@ -444,27 +442,40 @@ int delete_sensors_configuration(char **values, query_pairs *queries)
         return ERROR;
     }
 
+    // TODO borrar de las listas de sensorgroups
+    ListSensorgroups *sg_listptr;
+    for (unsigned int i = 0; i < sensorgroup_table->size; ++i) 
+    {
+        sg_listptr = sensorgroup_table->array[i];
+
+        while (sg_listptr != NULL) 
+        {
+            sensorgroup *sg = sg_listptr->sensorgroup;
+
+            int j;
+            for (j = 0; j < sg->sensorcount; j++)
+            {
+                if(strcmp(sg->sensor_list[j], id) == 0)
+                {
+                    break;
+                }
+            }
+
+            if(j != sg->sensorcount)
+            {
+                for (int k = j; k < (sg->sensorcount - 1); k++)
+                {
+                    sg->sensor_list[k] = strdup(sg->sensor_list[k+1]);
+                }
+                sg->sensorcount--;
+            }
+
+            sg_listptr = sg_listptr->next;
+        }
+    }
+    
     return OK;
 }
-#else
-int create_sensors_configuration(char **values)
-{
-    create_error_message(values, "Not implemented.");
-    return ERROR;
-}
-
-int update_sensors_configuration(char **values, query_pairs *queries)
-{
-    create_error_message(values, "Not implemented.");
-    return ERROR;
-}
-
-int delete_sensors_configuration(char **values, query_pairs *queries)
-{
-    create_error_message(values, "Not implemented.");
-    return ERROR;
-}
-#endif
 
 int read_sensors_configuration(char **readings)
 {
@@ -543,7 +554,7 @@ int create_sensorgroups_configuration(char **values)
         sensorgroup *sg = htsg_get(sensorgroup_table, id);
         if (sg != NULL)
         {
-            create_error_message(values, "A sensor with that id already exists");
+            create_error_message(values, "A sensorgroup with that id already exists");
             return ERROR;
         }
         free(sg);
@@ -553,12 +564,13 @@ int create_sensorgroups_configuration(char **values)
 
         JSON_Array *sgSensorlist = json_object_get_array(jobj, JSON_KEY_SENSORGROUPS_CONF_SENSOR_LIST);
         size_t sensorsCount = json_array_get_count(sgSensorlist);
-        char **sensor_list = malloc(sg->sensorcount * sizeof(char*));
+        char **sensor_list = malloc(sensorsCount * sizeof(char*));
         for (size_t i = 0; i < sensorsCount; i++)
         {
             JSON_Value *sensors_value = json_array_get_value(sgSensorlist, i);
             JSON_Object *sensors_object = json_value_get_object(sensors_value);
 
+            // TODO complete sensor config
             if (json_object_get_value(sensors_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_ID) != NULL && json_object_get_value(sensors_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_NAME) != NULL &&
             json_object_get_value(sensors_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_TYPE) != NULL && json_object_get_value(sensors_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_SETTINGS) != NULL &&
             json_object_get_value(sensors_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_SAMPLING_RATE) != NULL)
@@ -566,107 +578,121 @@ int create_sensorgroups_configuration(char **values)
                 char *sensor_id = strdup(json_object_get_string(sensors_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_ID));
                 sensor *sens = hts_get(sensors_table, sensor_id);
 
-                if (sens == NULL)
+                if (sens != NULL)
                 {
-                    sens = malloc(sizeof(sensor));
-                    sens->id = sensor_id;
-                    sens->name = strdup(json_object_get_string(sensors_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_NAME));
-                    sens->type = strdup(json_object_get_string(sensors_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_TYPE));
+                    hts_delete(sensors_table, sensor_id);
+                }
+                
+                sens = malloc(sizeof(sensor));
+                sens->id = sensor_id;
+                sens->name = strdup(json_object_get_string(sensors_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_NAME));
+                sens->type = strdup(json_object_get_string(sensors_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_TYPE));
 
-                    int32_t can_id = -1;
-                    int32_t init_bit = -1;
-                    int32_t end_bit = -1;
-                    JSON_Array *sensorSettingsList = json_object_get_array(sensors_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_SETTINGS);
-                    size_t sensorSettingsCount = json_array_get_count(sensorSettingsList);
-                    if (sensorSettingsCount == 3)
+                int32_t can_id = -1;
+                int32_t init_bit = -1;
+                int32_t end_bit = -1;
+                JSON_Array *sensorSettingsList = json_object_get_array(sensors_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_SETTINGS);
+                size_t sensorSettingsCount = json_array_get_count(sensorSettingsList);
+                if (sensorSettingsCount == 3)
+                {
+                    for (size_t k = 0; k < sensorSettingsCount; k++)
                     {
-                        for (size_t k = 0; k < sensorSettingsCount; k++)
+                        JSON_Value *sensorSetting = json_array_get_value(sensorSettingsList, k);
+                        JSON_Object *sensorSettingObject = json_value_get_object(sensorSetting);
+                        if (json_object_get_value(sensorSettingObject, JSON_KEY_SENSORGROUPS_CONF_SENSOR_KEY) != NULL && 
+                        json_object_get_value(sensorSettingObject, JSON_KEY_SENSORGROUPS_CONF_SENSOR_VALUE) != NULL)
                         {
-                            JSON_Value *sensorSetting = json_array_get_value(sensorSettingsList, k);
-                            JSON_Object *sensorSettingObject = json_value_get_object(sensorSetting);
-                            if (json_object_get_value(sensorSettingObject, JSON_KEY_SENSORGROUPS_CONF_SENSOR_KEY) != NULL && 
-                            json_object_get_value(sensorSettingObject, JSON_KEY_SENSORGROUPS_CONF_SENSOR_VALUE) != NULL)
+                            char *key = strdup(json_object_get_string(sensorSettingObject, JSON_KEY_SENSORGROUPS_CONF_SENSOR_KEY));
+                            if (strcmp(key, "can-id") == 0)
                             {
-                                char *key = strdup(json_object_get_string(sensorSettingObject, JSON_KEY_SENSORGROUPS_CONF_SENSOR_KEY));
-                                if (strcmp(key, "can-id") == 0)
-                                {
-                                    const char *can_id_str = json_object_get_string(sensorSettingObject, JSON_KEY_SENSORGROUPS_CONF_SENSOR_VALUE);
-                                    // TODO find more robust method
-                                    can_id = atoi(can_id_str);
-                                }
-                                else if (strcmp(key, "init-bit") == 0)
-                                {
-                                    const char *init_bit_str = json_object_get_string(sensorSettingObject, JSON_KEY_SENSORGROUPS_CONF_SENSOR_VALUE);
-                                    // TODO find more robust method
-                                    init_bit = atoi(init_bit_str);
-                                }
-                                else if (strcmp(key, "end-bit") == 0)
-                                {
-                                    const char *end_bit_str = json_object_get_string(sensorSettingObject, JSON_KEY_SENSORGROUPS_CONF_SENSOR_VALUE);
-                                    // TODO find more robust method
-                                    end_bit = atoi(end_bit_str);
-                                }
-                                else
-                                {
-                                    for (size_t j = 0; j < i; j++)
-                                    {
-                                        hts_delete(sensors_table, sensor_list[j]);
-                                    }
-                                    create_error_message(values, "One of the sensors of the sensorgroup is not correct");
-                                    return ERROR;
-                                }
+                                const char *can_id_str = json_object_get_string(sensorSettingObject, JSON_KEY_SENSORGROUPS_CONF_SENSOR_VALUE);
+                                // TODO find more robust method
+                                can_id = atoi(can_id_str);
+                            }
+                            else if (strcmp(key, "init-bit") == 0)
+                            {
+                                const char *init_bit_str = json_object_get_string(sensorSettingObject, JSON_KEY_SENSORGROUPS_CONF_SENSOR_VALUE);
+                                // TODO find more robust method
+                                init_bit = atoi(init_bit_str);
+                            }
+                            else if (strcmp(key, "end-bit") == 0)
+                            {
+                                const char *end_bit_str = json_object_get_string(sensorSettingObject, JSON_KEY_SENSORGROUPS_CONF_SENSOR_VALUE);
+                                // TODO find more robust method
+                                end_bit = atoi(end_bit_str);
                             }
                             else
                             {
-                                for (size_t j = 0; j < i; j++)
-                                {
-                                    hts_delete(sensors_table, sensor_list[j]);
-                                }
+                                // for (size_t j = 0; j < i; j++)
+                                // {
+                                //     hts_delete(sensors_table, sensor_list[j]);
+                                // }
                                 create_error_message(values, "One of the sensors of the sensorgroup is not correct");
                                 return ERROR;
                             }
                         }
-                    }
-                    else
-                    {
-                        for (size_t j = 0; j < i; j++)
+                        else
                         {
-                            hts_delete(sensors_table, sensor_list[j]);
+                            // for (size_t j = 0; j < i; j++)
+                            // {
+                            //     hts_delete(sensors_table, sensor_list[j]);
+                            // }
+                            create_error_message(values, "One of the sensors of the sensorgroup is not correct");
+                            return ERROR;
                         }
-                        create_error_message(values, "One of the sensors of the sensorgroup is not correct");
-                        return ERROR;
                     }
-
-                    if (can_id == -1 || init_bit == -1 || end_bit == -1)
-                    {
-                        for (size_t j = 0; j < i; j++)
-                        {
-                            hts_delete(sensors_table, sensor_list[j]);
-                        }
-                        create_error_message(values, "One of the sensors of the sensorgroup is not correct");
-                        return ERROR;
-                    }
-
-                    sens->can_id = can_id;
-                    sens->init_bit = init_bit;
-                    sens->end_bit = end_bit;
-                    sens->sampling_rate = json_object_get_number(sensors_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_SAMPLING_RATE);
-                    sens->value = "";
-                    sens->timestamp = 0;
-                    hts_put(sensors_table, sens->id, sens);
                 }
                 else
+                {
+                    // for (size_t j = 0; j < i; j++)
+                    // {
+                    //     hts_delete(sensors_table, sensor_list[j]);
+                    // }
+                    create_error_message(values, "One of the sensors of the sensorgroup is not correct");
+                    return ERROR;
+                }
+
+                if (can_id == -1 || init_bit == -1 || end_bit == -1)
                 {
                     for (size_t j = 0; j < i; j++)
                     {
                         hts_delete(sensors_table, sensor_list[j]);
                     }
-                    create_error_message(values, "One of the sensors of the sensorgroup already existed");
+                    create_error_message(values, "One of the sensors of the sensorgroup is not correct");
                     return ERROR;
                 }
+
+                sens->can_id = can_id;
+                sens->init_bit = init_bit;
+                sens->end_bit = end_bit;
+                sens->sampling_rate = json_object_get_number(sensors_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_SAMPLING_RATE);
+                sens->value = "";
+                sens->timestamp = 0;
+                hts_put(sensors_table, sens->id, sens);
+                
                 
                 sensor_list[i] = malloc(sizeof(char*));
                 strcpy(sensor_list[i], sensor_id);
+            }
+
+            // Only id
+            else if (json_object_get_value(sensors_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_ID) != NULL && json_object_get_value(sensors_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_NAME) == NULL &&
+            json_object_get_value(sensors_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_TYPE) == NULL && json_object_get_value(sensors_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_SETTINGS) == NULL &&
+            json_object_get_value(sensors_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_SAMPLING_RATE) == NULL)
+            {
+                char *sensor_id = strdup(json_object_get_string(sensors_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_ID));
+                sensor *sens = hts_get(sensors_table, sensor_id);
+
+                if (sens != NULL)
+                {
+                    sensor_list[i] = malloc(sizeof(char*));
+                    strcpy(sensor_list[i], sensor_id);
+                }
+                else
+                {
+                    create_error_message(values, "One of the sensors of the sensorgroup is not correct");
+                    return ERROR;
+                }
             }
             else
             {
@@ -728,7 +754,6 @@ int read_sensorgroups_configuration(char **readings)
         {
             sensorgroup *sg = malloc(sizeof(sensorgroup));
             sg = listptr->sensorgroup;
-
             JSON_Value *leaf_value = json_value_init_object();
             JSON_Object *leaf_object = json_value_get_object(leaf_value);
 
@@ -807,7 +832,8 @@ int delete_sensorgroups_configuration(char **values, query_pairs * queries)
             sensorgroup *sg = htsg_get(sensorgroup_table, id);
             if (sg != NULL)
             {
-                for (size_t i = 0; i < sg->sensorcount; i++)
+                // Delete individual sensors of the group
+                /*for (size_t i = 0; i < sg->sensorcount; i++)
                 {
                     sensor *sens = hts_delete(sensors_table, sg->sensor_list[i]);
                     if (sens == NULL)
@@ -815,7 +841,7 @@ int delete_sensorgroups_configuration(char **values, query_pairs * queries)
                         create_error_message(values, "Error deleting a sensor of the sensorgroup");
                         return ERROR;
                     }
-                }
+                }*/
                 sg = htsg_delete(sensorgroup_table, id);
                 if (sg == NULL)
                 {
