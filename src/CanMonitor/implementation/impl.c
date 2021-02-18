@@ -80,16 +80,16 @@ void create_error_message(char **values, char *message)
 
 int update_microservice_configuration(char **values)
 {
+    printf("Update microservice configuration\n");
     JSON_Value *jval = json_parse_string(*values);
     JSON_Object *jobj = json_value_get_object(jval);
 
     if (json_object_get_value(jobj, JSON_KEY_SETUP_ENDPOINT_TYPE) != NULL && json_object_get_value(jobj, JSON_KEY_SETUP_IP) != NULL &&
     json_object_get_value(jobj, JSON_KEY_SETUP_PORT) != NULL && json_object_get_value(jobj, JSON_KEY_SETUP_QOS) != NULL)
     {
-
         char *endpoint_type = strdup(json_object_get_string(jobj, JSON_KEY_SETUP_ENDPOINT_TYPE));
 
-        if (strcpy(endpoint_type, "http") == 0)
+        if (strcmp(endpoint_type, "http") == 0)
         {
             extern int rest_server_port;
             rest_server_port = json_object_get_number(jobj, JSON_KEY_SETUP_PORT);
@@ -99,7 +99,7 @@ int update_microservice_configuration(char **values)
             strcpy(*values, "");
             return OK;
         }
-        else if (strcpy(endpoint_type, "mqtt") == 0)
+        else if (strcmp(endpoint_type, "mqtt") == 0)
         {
             extern ms_status status;
             ms_status old_status = status;
@@ -141,7 +141,6 @@ int update_microservice_configuration(char **values)
 
 int read_connection_configuration(char **readings)
 {
-        
     extern char *can_conf_id;
     extern char *canport;
     extern int bitrate;
@@ -387,6 +386,12 @@ int create_sensors_configuration(char **values)
     }
     
     strcpy(*values, "");
+
+    extern ms_status status;
+    if (status != running)
+    {
+        status = configured;
+    }
     return OK;
 }
 
@@ -709,6 +714,11 @@ int create_sensorgroups_configuration(char **values)
         htsg_put(sensorgroup_table, sg->id, sg);
 
         strcpy(*values, "");
+        extern ms_status status;
+        if (status != running)
+        {
+            status = configured;
+        }
         return OK;
     }
     else
@@ -921,13 +931,13 @@ int cmd_execute_configuration(char **values)
     if (json_object_get_value(jobj, JSON_KEY_CMD_EXECUTE_ORDER) != NULL)
     {
         char *cmd = strdup(json_object_get_string(jobj, JSON_KEY_CMD_EXECUTE_ORDER));
-        printf("{\n\t\"%s\": %s\n}\n", JSON_KEY_CMD_EXECUTE_ORDER, cmd);
 
         if (strcmp(cmd, "start") == 0)
         {
             if(status == configured)
             {
                 printf("Changing status to executing...\n");
+                status = running;
                 strcpy(*values, "");
                 return OK;
             }
@@ -942,8 +952,8 @@ int cmd_execute_configuration(char **values)
         {
             if(status == running)
             {
-                status = configured;
                 printf("Changing status to configured...\n");
+                status = configured;
                 strcpy(*values, "");
                 return OK;
             }

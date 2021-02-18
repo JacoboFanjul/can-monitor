@@ -1,0 +1,1565 @@
+{
+	"info": {
+		"_postman_id": "f8c84129-c28f-47a4-9b21-d974ee690ed4",
+		"name": "TestCanMonitor",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "General",
+			"item": [
+				{
+					"name": "Ping",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/ping",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"ping"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Microservice Info",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/microservice-info",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"microservice-info"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Performance",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/performance",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"performance"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/status",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Connection Configuration",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/monitoring-agent/config/connection",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"monitoring-agent",
+								"config",
+								"connection"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Setup http",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"endpoint-type\": \"http\",\n    \"ip\":\"\",\n    \"port\": 8090,\n    \"qos\": 0\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/setup",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"setup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Ping",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8090/adms/v2/ping",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8090",
+							"path": [
+								"adms",
+								"v2",
+								"ping"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Setup back http",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"endpoint-type\": \"http\",\n    \"ip\":\"\",\n    \"port\": 48891,\n    \"qos\": 0\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8090/adms/v2/setup",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8090",
+							"path": [
+								"adms",
+								"v2",
+								"setup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Ping",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/ping",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"ping"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Setup mqtt",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"endpoint-type\": \"mqtt\",\n    \"ip\":\"localhost\",\n    \"port\": 1883,\n    \"qos\": 0\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/setup",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"setup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Ping",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/ping",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"ping"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Setup mqtt back",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"endpoint-type\": \"mqtt\",\n    \"ip\":\"emq-adeptness.iot.ikerlan.es\",\n    \"port\": 1883,\n    \"qos\": 0\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/setup",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"setup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Connection Configuration 2",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/monitoring-agent/config/connection",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"monitoring-agent",
+								"config",
+								"connection"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Connection Configuration",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"0\",\n    \"monitor-agent-type\": \"can\",\n    \"connection-settings\": [\n        {\n            \"key\": \"canport\",\n            \"value\": \"can0\"\n        },\n        {\n            \"key\": \"bitrate\",\n            \"value\": 125000\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/monitoring-agent/config/connection",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"monitoring-agent",
+								"config",
+								"connection"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Connection Configuration 3",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/monitoring-agent/config/connection",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"monitoring-agent",
+								"config",
+								"connection"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Agent Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/monitoring-agent/monitoring-agent-status",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"monitoring-agent",
+								"monitoring-agent-status"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Sensors",
+			"item": [
+				{
+					"name": "Agent Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/monitoring-agent/monitoring-agent-status",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"monitoring-agent",
+								"monitoring-agent-status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sensor Configuration",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/monitoring-agent/config/sensors",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"monitoring-agent",
+								"config",
+								"sensors"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sensor Configuration id_1",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"sensor-id\": \"id_1\",\n    \"sensor-name\": \"Speed_1\",\n    \"sensor-type\": \"Uint32\",\n    \"sensor-settings\": [\n        {\n            \"key\": \"can-id\",\n            \"value\": \"1\"\n        },\n        {\n            \"key\": \"init-bit\",\n            \"value\": \"1\"\n        },\n        {\n            \"key\": \"end-bit\",\n            \"value\": \"10\"\n        }\n    ],\n    \"sampling-rate\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/monitoring-agent/config/sensors",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"monitoring-agent",
+								"config",
+								"sensors"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sensor Configuration 1",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/monitoring-agent/config/sensors",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"monitoring-agent",
+								"config",
+								"sensors"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sensor Configuration id_2",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"sensor-id\": \"id_2\",\n    \"sensor-name\": \"Speed_2\",\n    \"sensor-type\": \"Uint32\",\n    \"sensor-settings\": [\n        {\n            \"key\": \"can-id\",\n            \"value\": \"2\"\n        },\n        {\n            \"key\": \"init-bit\",\n            \"value\": \"2\"\n        },\n        {\n            \"key\": \"end-bit\",\n            \"value\": \"20\"\n        }\n    ],\n    \"sampling-rate\": 2\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/monitoring-agent/config/sensors",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"monitoring-agent",
+								"config",
+								"sensors"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sensor Configuration 2",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/monitoring-agent/config/sensors",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"monitoring-agent",
+								"config",
+								"sensors"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sensor Configuration id_3",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"sensor-id\": \"id_3\",\n    \"sensor-name\": \"Position_3\",\n    \"sensor-type\": \"Uint32\",\n    \"sensor-settings\": [\n        {\n            \"key\": \"can-id\",\n            \"value\": \"33\"\n        },\n        {\n            \"key\": \"init-bit\",\n            \"value\": \"33\"\n        },\n        {\n            \"key\": \"end-bit\",\n            \"value\": \"330\"\n        }\n    ],\n    \"sampling-rate\": 3\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/monitoring-agent/config/sensors",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"monitoring-agent",
+								"config",
+								"sensors"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sensor Configuration 3",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/monitoring-agent/config/sensors",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"monitoring-agent",
+								"config",
+								"sensors"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sensor Configuration",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"sensor-id\": \"id_3\",\n    \"sensor-name\": \"Speed_3\",\n    \"sensor-type\": \"Uint16\",\n    \"sensor-settings\": [\n        {\n            \"key\": \"can-id\",\n            \"value\": \"3\"\n        },\n        {\n            \"key\": \"init-bit\",\n            \"value\": \"3\"\n        },\n        {\n            \"key\": \"end-bit\",\n            \"value\": \"30\"\n        }\n    ],\n    \"sampling-rate\": 3\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/monitoring-agent/config/sensors?id=id_3",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"monitoring-agent",
+								"config",
+								"sensors"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "id_3"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sensor Configuration 4",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/monitoring-agent/config/sensors",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"monitoring-agent",
+								"config",
+								"sensors"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sensor Configuration id_3",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/monitoring-agent/config/sensors?id=id_3",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"monitoring-agent",
+								"config",
+								"sensors"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "id_3"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sensor Configuration 5",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/monitoring-agent/config/sensors",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"monitoring-agent",
+								"config",
+								"sensors"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Sensorgroups",
+			"item": [
+				{
+					"name": "Sensorgroup Subscription",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/monitoring-agent/config/sensorgroups",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"monitoring-agent",
+								"config",
+								"sensorgroups"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sensorgroup Subscription sg_1",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"sensorgroup-id\": \"sg_1\",\n  \"publish-rate\": 2000,\n  \"sensor-list\": [\n    {\n      \"sensor-id\": \"id_1\"\n    },\n    {\n      \"sensor-id\": \"id_2\"\n    }\n  ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/monitoring-agent/config/sensorgroups",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"monitoring-agent",
+								"config",
+								"sensorgroups"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sensorgroup Subscription 1",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/monitoring-agent/config/sensorgroups",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"monitoring-agent",
+								"config",
+								"sensorgroups"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sensorgroup Subscription sg_2",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"sensorgroup-id\": \"sg_2\",\n  \"publish-rate\": 3000,\n  \"sensor-list\": [\n    {\n      \"sensor-id\": \"id_11\",\n      \"sensor-name\": \"Speed_11\",\n      \"sensor-type\": \"Uint64\",\n      \"sensor-settings\": [\n        {\n          \"key\": \"can-id\",\n          \"value\": \"11\"\n        },\n        {\n          \"key\": \"init-bit\",\n          \"value\": \"11\"\n        },\n        {\n          \"key\": \"end-bit\",\n          \"value\": \"1111\"\n        }\n      ],\n      \"sampling-rate\": 11\n    },\n    {\n      \"sensor-id\": \"id_12\",\n      \"sensor-name\": \"Speed_12\",\n      \"sensor-type\": \"Uint32\",\n      \"sensor-settings\": [\n        {\n          \"key\": \"can-id\",\n          \"value\": \"12\"\n        },\n        {\n          \"key\": \"init-bit\",\n          \"value\": \"12\"\n        },\n        {\n          \"key\": \"end-bit\",\n          \"value\": \"1122\"\n        }\n      ],\n      \"sampling-rate\": 12\n    }\n  ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/monitoring-agent/config/sensorgroups",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"monitoring-agent",
+								"config",
+								"sensorgroups"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sensorgroup Subscription 2",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/monitoring-agent/config/sensorgroups",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"monitoring-agent",
+								"config",
+								"sensorgroups"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sensorgroup Subscription sg_3",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"sensorgroup-id\": \"sg_3\",\n  \"publish-rate\": 10000,\n  \"sensor-list\": [\n    {\n      \"sensor-id\": \"id_13\",\n      \"sensor-name\": \"Speed_13\",\n      \"sensor-type\": \"Uint32\",\n      \"sensor-settings\": [\n        {\n          \"key\": \"can-id\",\n          \"value\": \"13\"\n        },\n        {\n          \"key\": \"init-bit\",\n          \"value\": \"13\"\n        },\n        {\n          \"key\": \"end-bit\",\n          \"value\": \"1133\"\n        }\n      ],\n      \"sampling-rate\": 13\n    },\n    {\n        \"sensor-id\": \"id_1\"\n    }\n  ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/monitoring-agent/config/sensorgroups",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"monitoring-agent",
+								"config",
+								"sensorgroups"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sensorgroup Subscription 3",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/monitoring-agent/config/sensorgroups",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"monitoring-agent",
+								"config",
+								"sensorgroups"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sensorgroup Subscription sg_1",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"sensorgroup-id\": \"sg_1\",\n  \"publish-rate\": 1000,\n  \"sensor-list\": [\n    {\n      \"sensor-id\": \"id_1\"\n    },\n    {\n      \"sensor-id\": \"id_2\"\n    }\n  ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/monitoring-agent/config/sensorgroups?id=sg_1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"monitoring-agent",
+								"config",
+								"sensorgroups"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "sg_1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sensorgroup Subscription 4",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/monitoring-agent/config/sensorgroups",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"monitoring-agent",
+								"config",
+								"sensorgroups"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sensorgroup Subscription sg_2",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"sensorgroup-id\": \"sg_2\",\n  \"publish-rate\": 5000,\n  \"sensor-list\": [\n    {\n      \"sensor-id\": \"id_2\",\n      \"sensor-name\": \"Speed_22\",\n      \"sensor-type\": \"Uint32\",\n      \"sensor-settings\": [\n        {\n          \"key\": \"can-id\",\n          \"value\": \"22\"\n        },\n        {\n          \"key\": \"init-bit\",\n          \"value\": \"22\"\n        },\n        {\n          \"key\": \"end-bit\",\n          \"value\": \"2222\"\n        }\n      ],\n      \"sampling-rate\": 22\n    },\n    {\n      \"sensor-id\": \"id_3\",\n      \"sensor-name\": \"Speed_3\",\n      \"sensor-type\": \"Uint32\",\n      \"sensor-settings\": [\n        {\n          \"key\": \"can-id\",\n          \"value\": \"3\"\n        },\n        {\n          \"key\": \"init-bit\",\n          \"value\": \"3\"\n        },\n        {\n          \"key\": \"end-bit\",\n          \"value\": \"33\"\n        }\n      ],\n      \"sampling-rate\": 3\n    },\n    {\n      \"sensor-id\": \"id_4\",\n      \"sensor-name\": \"Speed_4\",\n      \"sensor-type\": \"111\",\n      \"sensor-settings\": [\n        {\n          \"key\": \"can-id\",\n          \"value\": \"4\"\n        },\n        {\n          \"key\": \"init-bit\",\n          \"value\": \"4\"\n        },\n        {\n          \"key\": \"end-bit\",\n          \"value\": \"44\"\n        }\n      ],\n      \"sampling-rate\": 4\n    }\n  ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/monitoring-agent/config/sensorgroups?id=sg_2",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"monitoring-agent",
+								"config",
+								"sensorgroups"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "sg_2"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sensorgroup Subscription 5",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/monitoring-agent/config/sensorgroups",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"monitoring-agent",
+								"config",
+								"sensorgroups"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sensorgroup Subscription sg_3",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"sensorgroup-id\": \"sg_3\",\n  \"publish-rate\": 9000,\n  \"sensor-list\": [\n    {\n      \"sensor-id\": \"id_1000\",\n      \"sensor-name\": \"Speed_1000\",\n      \"sensor-type\": \"Uint16\",\n      \"sensor-settings\": [\n        {\n          \"key\": \"can-id\",\n          \"value\": \"1000\"\n        },\n        {\n          \"key\": \"init-bit\",\n          \"value\": \"1000\"\n        },\n        {\n          \"key\": \"end-bit\",\n          \"value\": \"9999\"\n        }\n      ],\n      \"sampling-rate\": 1000\n    },\n    {\n      \"sensor-id\": \"id_2000\",\n      \"sensor-name\": \"Speed_2000\",\n      \"sensor-type\": \"Uint8\",\n      \"sensor-settings\": [\n        {\n          \"key\": \"can-id\",\n          \"value\": \"2000\"\n        },\n        {\n          \"key\": \"init-bit\",\n          \"value\": \"2000\"\n        },\n        {\n          \"key\": \"end-bit\",\n          \"value\": \"2222\"\n        }\n      ],\n      \"sampling-rate\": 2000\n    },\n    {\n        \"sensor-id\": \"id_1\"\n    },\n    {\n        \"sensor-id\": \"id_2\"\n    },\n    {\n        \"sensor-id\": \"id_3\"\n    }\n  ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/monitoring-agent/config/sensorgroups?id=sg_3",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"monitoring-agent",
+								"config",
+								"sensorgroups"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "sg_3"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sensorgroup Subscription 6",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/monitoring-agent/config/sensorgroups",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"monitoring-agent",
+								"config",
+								"sensorgroups"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sensorgroup Subscription sg_3",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/monitoring-agent/config/sensorgroups?id=sg_3",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"monitoring-agent",
+								"config",
+								"sensorgroups"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "sg_3"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sensorgroup Subscription 7",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/monitoring-agent/config/sensorgroups",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"monitoring-agent",
+								"config",
+								"sensorgroups"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Monitoring",
+			"item": [
+				{
+					"name": "Agent Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/monitoring-agent/monitoring-agent-status",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"monitoring-agent",
+								"monitoring-agent-status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Start monitoring",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"order\": \"start\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/monitoring-agent/cmd-execute",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"monitoring-agent",
+								"cmd-execute"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Agent Status 2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"setTimeout(function(){}, 15*1000);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/monitoring-agent/monitoring-agent-status",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"monitoring-agent",
+								"monitoring-agent-status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Stop monitoring",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"order\": \"stop\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/monitoring-agent/cmd-execute",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"monitoring-agent",
+								"cmd-execute"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Agent Status 3",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"setTimeout(function(){}, 15*1000);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/monitoring-agent/monitoring-agent-status",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"monitoring-agent",
+								"monitoring-agent-status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Measurements id_1",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/monitoring-agent/sensors?id=id_1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"monitoring-agent",
+								"sensors"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "id_1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Measurements id_2",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/monitoring-agent/sensors?id=id_2",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"monitoring-agent",
+								"sensors"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "id_2"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Measurements all",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/monitoring-agent/sensors",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"monitoring-agent",
+								"sensors"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Start monitoring 2",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"order\": \"start\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/monitoring-agent/cmd-execute",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"monitoring-agent",
+								"cmd-execute"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Agent Status 4",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/monitoring-agent/monitoring-agent-status",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"monitoring-agent",
+								"monitoring-agent-status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Measurements id_1",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/monitoring-agent/sensors?id=id_1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"monitoring-agent",
+								"sensors"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "id_1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Measurements id_2",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/monitoring-agent/sensors?id=id_2",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"monitoring-agent",
+								"sensors"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "id_2"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Measurements all",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"setTimeout(function(){}, 15*1000);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/monitoring-agent/sensors",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"monitoring-agent",
+								"sensors"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Setup mqtt change broker to localhost",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"endpoint-type\": \"mqtt\",\n    \"ip\":\"localhost\",\n    \"port\": 1883,\n    \"qos\": 0\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:48891/adms/v2/setup",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "48891",
+							"path": [
+								"adms",
+								"v2",
+								"setup"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

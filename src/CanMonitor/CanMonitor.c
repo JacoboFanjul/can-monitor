@@ -24,7 +24,6 @@
 #define DATA_TOPIC_PREFIX MQTT_API_PREFIX "/monitor-agent"
 #define DISCOVERY_TOPIC MQTT_API_PREFIX "/discovery"
 
-//static char *mqtt_data_topic = "adms/v2/monitor-agent/urn:ngis.ld:DeployableComp:MonitorCan01Edge01/urn:ngis.ld:SensorGroup:MonitorCAN01_Group01";
 
 /* Global vars */
 ms_status status = 0;
@@ -537,6 +536,7 @@ int main(int argc, char *argv[])
     #if DEV
     create_dummy_struct();
     print_struct();
+    status = configured;
     #endif
 
     while (status != exit_ms)
@@ -548,6 +548,7 @@ int main(int argc, char *argv[])
 
             publish(DISCOVERY_TOPIC, strdup(create_discovery_payload()));
             restart_mqtt = 0;
+            printf("-- MQTT connection reconfigured\n");
         }
 
         if (restart_http != 0)
@@ -557,12 +558,13 @@ int main(int argc, char *argv[])
             ERR_CHECK(e);
             adeptness_service_start(service, &e);
             ERR_CHECK(e);
+            restart_http = 0;
             printf("-- REST port reconfigured\n");
         }
 
         // TODO delete, only for dev
         #if AUTOSTART
-        status = running;        
+        status = running;
         #endif
 
         if (status == configured || status == running)
@@ -622,13 +624,11 @@ int main(int argc, char *argv[])
                     {
                         char mqtt_data_topic[200];
                         sprintf(mqtt_data_topic, "%s/%s/%s", DATA_TOPIC_PREFIX, monitor_id, sg->id);
-                        printf("Topic created: %s\n", mqtt_data_topic);
 
                         const char *payload = create_data_payload(sg);
-                        printf("Payload created: %s\n", payload);
                         
                         publish(mqtt_data_topic, strdup(payload));
-                        printf("[%ld] Publish on [%s]: %s\n", current_ms, mqtt_data_topic, payload);
+                        printf("%ld - Publish on %s: %s\n", current_ms, mqtt_data_topic, payload);
                         sg->last_publish_time.tv_sec = current_time.tv_sec;
                         sg->last_publish_time.tv_usec = current_time.tv_usec;
 

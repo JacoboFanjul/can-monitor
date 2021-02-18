@@ -6,8 +6,8 @@
 
 // Aux for dev only:
 #define EXISTS_CAN 0
-#define DEV 1
-#define AUTOSTART 1
+#define DEV 0
+#define AUTOSTART 0
 
 extern ms_status status;
 

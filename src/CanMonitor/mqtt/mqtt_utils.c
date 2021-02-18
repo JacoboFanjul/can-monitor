@@ -16,15 +16,13 @@ int initializeMQTT(char *mqttBrokerHost, int mqttBrokerPort, int mqttQoS, char *
 
     char mqtt_host[100];
     sprintf(mqtt_host, "tcp://%s:%d", mqttBrokerHost, mqttBrokerPort);
-    printf("DEB: mqtt_host = %s\n", mqtt_host);
 
     MQTTClient_create(&mqtt_client, mqtt_host, clientIdentifier, MQTTCLIENT_PERSISTENCE_NONE, NULL);
-    printf("DEB: MQTT client created succesfully\n");
     MQTTClient_connectOptions connOpts = MQTTClient_connectOptions_initializer;
     connOpts.cleansession = 1;
     connOpts.reliable = 0;
     connOpts.username = mqttUsername;
-    printf("DEB: Optiones added succesfully\n");
+
     MQTTClient_setCallbacks(mqtt_client, NULL, NULL, NULL, NULL);
     printf("-- MQTT client initialized\n");
     mqtt_qos = mqttQoS;
@@ -39,7 +37,6 @@ int initializeMQTT(char *mqttBrokerHost, int mqttBrokerPort, int mqttQoS, char *
 
 void clean_mqtt() {
     MQTTClient_disconnect(mqtt_client, 1000);
-    MQTTClient_destroy(mqtt_client);
 }
 
 void publish(char* topic, char* payload) {
@@ -51,5 +48,4 @@ void publish(char* topic, char* payload) {
     MQTTClient_deliveryToken token;
     MQTTClient_publishMessage(mqtt_client, topic, &pubmsg, &token);
     MQTTClient_waitForCompletion(mqtt_client, token, 1000L);
-    printf("Published:\tToken: %i\n\tTopic '%s'\n\tMessage: '%s'\n", token, topic, payload);
 }
