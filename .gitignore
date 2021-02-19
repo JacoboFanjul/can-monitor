@@ -2,7 +2,6 @@
 .vscode/
 build/
 docker-build
-build_dockers.sh
 
 # Covers JetBrains IDEs
 # User-specific stuff

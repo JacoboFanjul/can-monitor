@@ -1,10 +1,11 @@
-#  Basic example for an adeptness service
+#  Implementation of a monitor-agent for CAN monitoring in the Adeptness project
 
-Based on the KonnektSense device service, the code has been reduced as much as possible in order to have a basic service that allows you to serve a REST API and publish an MQTT message.
+Based on the [template](https://gitlab.com/adeptness/source/adeptness-example-ms-cdevice), this microservice allows to monitor sensors that send data via CAN. It implements the [monitoring-agent-interface](https://gitlab.com/adeptness/wp1/interfaces/monitoring-agent-interface). 
 
 
 ## Roadmap
 
+- [ ] Add CAN read functiones
 - [X] Add query support
 - [X] Generate data structs for variables
 - [X] Generate array/map/hashtables for variable structs
@@ -12,24 +13,20 @@ Based on the KonnektSense device service, the code has been reduced as much as p
 - [X] Delete Polling Interval references
 - [X] Affect data structures with API calls
 
-## About
+## Building
 
-This service generates random number every 5 seconds and publish them through MQTT.
-The service provides a restfull API described below.
-
-
-## Prerequisites
+### Prerequisites
 
 * A Linux build host
 * A version of GCC supporting C99.
 * CMake version 3 or greater and make.
-* Development libraries and headers for curl, microhttpd, yaml, libcbor and libuuid, mosquitto.
+* Development libraries and headers for curl, microhttpd, yaml, libcbor, libuuid, and paho.
 
 ```
 sudo apt install build-essential cmake make gcc curl libmicrohttpd-dev mosquitto-dev libmosquitto-dev libcbor-dev libcurl4-openssl-dev libyaml-dev uuid-dev libjsoncpp-dev
 ```
 
-## Building
+### Build
 
 At the toplevel directory, run 
 ```
@@ -39,125 +36,198 @@ This retrieves dependencies and uses CMake to build the service. Subsequent
 rebuilds may be performed by moving to the ```build/release``` or
 ```build/debug``` directories and running ```make```.
 
-## Config file
-In ```config``` directory, a file ```config.json``` allows to configure different parameters, only MQTT for now. To use the broker from inside Ikerlan, the host has to be ```emq.konnekt.ikerlan.es```, from outside ```193.145.247.18```.
-
-## MQTT broker
-The MQTT broker allows to connect only using the ```adeptness``` username, with no password. It also allows only one connection with the same id, so be carefull with the selected id, i.e., MQTTfx selects the same id by default in every new configuration.
-
-## API
-### GET Ping (keep alive)
-``` 
-GET http://IP:48890/adeptnessMs/ping
+### Build dockerized
+Launch the script for creating the multi-platform docker images. It requires to have buildx support, [see here](https://medium.com/@artur.klauser/building-multi-architecture-docker-images-with-buildx-27d80f7e2408). The script builds the docker image and uploads it to Ikerlan's harbor registry.
+```
+./build_dockers.sh
 ```
 
-### GET Metrics (see doc metrics.md)
-``` 
-GET http://IP:48890/adeptnessMs/metrics
-```
+## Running the microservice
 
+The microservice supports the needed parameters to be configured using a config file (legacy), and using environment variables.
 
-### Get Data (random number)
-``` 
-GET http://IP:48890/adeptnessMs/specific/Data
-```
+### Standalone
 
-### Get Data MQTT (random number)
-Subcribe to  http://193.145.247.18:1883/
-Topic konnekt/adeptness/data
-
-This can be changed on src/c/mqtt/config.h
-The payload is a JSON with the following format that can be changed on src/c/mqtt/mqtt_payload_helpers.c 
-
-``` 
-{"value":XX,"valueType":"Number","timestamp":"DD/MM/YY HH:MM:SS"}
-```
-
-### Get Discovery MQTT
-Subscribe to http://193.145.247.18:1883/ on the topic: ``` konnekt/adeptness/discovery``` 
-
-The topic does not follow the specification due to the current architecture.
-
-Payload:
-
-``` 
-{"id":1234,
-	"name":"Monitor_Agent_1",
-	"monitortype": "monitor-agent",
-	"endpoints": [
-		{"endpoint-type":"mqtt","endpoint":"example.com:1883"},
-		{"endpoint-type":"mqtt","endpoint":"example.com:1884"},
-		{"endpoint-type":"mqtt","endpoint":"example.com:1885"}
-	]
-}
-```
-
-
-## BUILDING DOCKER IMAGE:
-
-At the toplevel directory, run: 
+#### Run using environment variables.
+First export the variables, e.g.,
 
 ```
-docker build -t registry.gitlab.com/adeptness/source/adeptness-example-ms-c/adeptness-example-ms-c:0.0.2 .
+export REST_PORT=48891 MQTT_BROKER_IP=emq-adeptness.iot.ikerlan.es MQTT_BROKER_PORT=1883 MQTT_QOS=2 SVC_ID=can-monitor
 ```
 
-A Docker image tagged "my-adeptness-service" should have been built. This can be checked by running:
-docker image ls
+Then, run the executable in ```build/debug``` or ```build/release```, i.e.,
+```
+cd build/debug
+./CanMonitor
+```
 
+#### Run using config file (legacy).
 
-## RUNNING DOCKER CONTAINER (NO NEED TO PREVIOUSLY BUILD THE DOCKER IMAGE: IT PULLS FROM THE REGISTRY)
+In ```config``` directory, a file ```config.json``` allows to configure different parameters. 
 
-To run the Docker container with the ADEPTNESS service, first authenticate into the registry with:
+Adapt the file to your needs and execute the microservice:
+```
+cd build/debug
+./CanMonitor -c ../../conf/config.json
+```
 
+### Docker
+
+The ```build_docker.sh``` script uploads the image to Ikerlan's Harbor registry, so the first step is to login there:
 ```
 docker login registry.gitlab.com
 ```
+Then, the image can be downloaded and the container launched.
 
-And then run:
-
-```
-docker run -p 48890:48890 -it --init registry.gitlab.com/adeptness/source/adeptness-example-ms-c/adeptness-example-ms-c:0.0.2
-```
-
-To stop the container while being executed, press Ctrl+C
-
-## RUNNING DOCKER CONTAINER WITH EXTERNAL CONFIG FILE
-
-To pass an external configuration file to the container, it is necessary to mount the directory that contains the *config.json* file. To do this, execute the following command:
-
-```
-docker run -p 48890:48890 -v $PWD/conf/config.json:/adeptness/conf/config.json -it --init registry.gitlab.com/adeptness/source/adeptness-example-ms-c/adeptness-example-ms-c:0.0.2
-```
-
-## RUNNING DOCKER CONTAINER WITH ENVIRONMENT VARIABLES
-
+#### Run container using environment variables.
 The different communication parameters can be configured with environment variables. To do this, execute the following command:
 
 ```
-docker run -p 48890:48890 -e REST_PORT=48890 -e MQTT_BROKER_IP=emq-adeptness.iot.ikerlan.es -e  MQTT_BROKER_PORT=1883 -e MQTT_QOS=2 -e SVC_ID=Adeptness -it --init registry.gitlab.com/adeptness/source/adeptness-example-ms-c/adeptness-example-ms-c:0.0.2
-
-## PUSHING DOCKER IMAGE TO ADEPTNESS REGISTRY
-
-Once a new Docker image is generated with its corresponding name (registry.gitlab.com/adeptness/source/adeptness-example-ms-c/adeptness-example-ms-c) and tag (0.0.2), in the form name:tag, first login into the registry:
-
-```
-docker login registry.gitlab.com
+docker run -p 48891:48891 -e REST_PORT=48891 -e MQTT_BROKER_IP=emq-adeptness.iot.ikerlan.es -e MQTT_BROKER_PORT=1883 -e MQTT_QOS=2 -e SVC_ID=can-monitor -it --init registry.bda.ikerlan.es/adeptness/can_monitor:latest
 ```
 
-Then, push the image to the registry, using a new tag:
+## About
 
+When launching, this microservice sends a discovery message via MQTT to indicate that it is ready. Then, the sensors and sensorgroups need to be configured using the [REST API](https://gitlab.com/adeptness/wp1/interfaces/monitoring-agent-interface/-/blob/master/monitoring_agent_openapi.yaml). Import the POSTMAN collection in the test folder to have examples.
+
+## MQTT broker
+The default MQTT broker is on the Adeptness server. The IP and ports are:
+- Internal: 172.16.56.58:1883
+- Internal DNS: emq-adeptness.iot.ikerlan.es:1883
+- External: 193.145.247.18:1884
+
+The broker only allows one connection with the same id, so be carefull with the selected id, i.e., MQTTfx selects the same id by default in every new configuration.
+
+## REST API
+The example port used in this README has been 48891, but it can be changed. The can-monitoring microservice implements the [monitoring-agent-interface openapi](https://gitlab.com/adeptness/wp1/interfaces/monitoring-agent-interface/-/blob/master/monitoring_agent_openapi.yaml). See the specification for more information, but here is a shor summary of the supported requests.
+
+### Ping (keep alive)
+``` 
+GET http://[host]/adms/v2/ping
 ```
-docker push registry.gitlab.com/adeptness/source/adeptness-example-ms-c/adeptness-example-ms-c:0.0.2
+
+### Metrics (info about the microservice)
+``` 
+GET http://[host]/adms/v2/microservice-info
 ```
 
-## DOCKER IMAGE REGISTRY VERSION HISTORY:
+### Performance (Metrics of the performance of the microservice)
+``` 
+GET http://[host]/adms/v2/performance
+```
 
-0.0.0 : Initial ADEPTNESS microservice, featuring MQTT publisher and REST server.
+### Status
+``` 
+GET http://[host]​/adms​/v2​/status
+```
 
-0.0.1 : Addition of Discovery message.
+### Setup (Update microservice enpoints)
+``` 
+GET http://[host]​​/adms​/v2​/setup
+```
 
-0.0.4 : Environment variables support & SenML payload example
+### Connection Configuration
+``` 
+GET http://[host]​​/adms​/v2​/monitoring-agent​/config​/connection
+```
+``` 
+PUT http://[host]​​/adms​/v2​/monitoring-agent​/config​/connection
+```
 
-0.0.5 : Changed MQTT library from Mosquitto to Paho
+### Sensors Configuration (configuration of individual variables)
+``` 
+GET ​/adms​/v2​/monitoring-agent​/config​/sensors
+```
+``` 
+PUT ​/adms​/v2​/monitoring-agent​/config​/sensors?id=xx
+```
+``` 
+POST ​/adms​/v2​/monitoring-agent​/config​/sensors
+```
+``` 
+DELETE ​/adms​/v2​/monitoring-agent​/config​/sensors?id=xx
+```
 
-0.0.6 : Changed interface to v2
+### Sensorgroups Subscription (configuration of subscriptions for groups of variables to monitor)
+``` 
+GET http://[host]​​/adms​/v2​/monitoring-agent​/config​/sensorgroups
+```
+``` 
+PUT http://[host]​​/adms​/v2​/monitoring-agent​/config​/sensorgroups?id=xx
+```
+``` 
+POST http://[host]​​/adms​/v2​/monitoring-agent​/config​/sensorgroups
+```
+``` 
+DELETE http://[host]​​/adms​/v2​/monitoring-agent​/config​/sensorgroups?id=xx
+```
+
+### Monitoring agent execution (status of the monitor, running or stopped)
+``` 
+GET http://[host]​/adms​/v2​/monitoring-agent​/monitoring-agent-status
+```
+``` 
+PUT http://[host]​​/adms​/v2​/monitoring-agent​/cmd-execute
+```
+
+### Sensors Measurements (individual variable values)
+The query is optional. If it is included, the request will answer with the values of that sensor, if it is not included, it sends the values of all sensors.
+``` 
+GET http://[host]​​/adms​/v2​/monitoring-agent​/sensors?id=xx
+```
+
+## MQTT topics
+The MQTT topics are defined in the [monitoring-agent-interface asyncapi](https://gitlab.com/adeptness/wp1/interfaces/monitoring-agent-interface/-/blob/master/monitoring_agent_asyncapi.yaml) file.
+
+### Discovery
+It is the message that the microservice sends to announce that it is ready on startup or when its mqtt configuration has changed.
+
+Topic: 
+``` 
+adms/v2/discovery
+``` 
+
+Example payload:
+
+``` 
+{
+  "id" : "Adeptness",
+  "name" : "Adeptness",
+  "microservice-type" : "monitor-agent",
+  "endpoints" : [ {
+    "endpoint-type" : "mqtt",
+    "ip" : "emq-adeptness.iot.ikerlan.es",
+    "port" : 1883,
+    "qos" : 2
+  }, {
+    "endpoint-type" : "http",
+    "ip" : "",
+    "port" : 48891,
+    "qos" : 0
+  } ]
+}
+```
+
+### Sensorgroup values
+These are the messages with the value of the sensors that are being monitored. 
+
+Topic:
+```
+adms/v2/monitoring-agent/{monitorId}/{subscriptionId}
+```
+where MonitorId is the monitor-id defined when launching the microservice and subscriptionId is the id of the sensorgroup whose information is being sent, e.g, ```adms/v2/monitor-agent/Adeptness/sg_1```.
+
+Example payload:
+```
+[ {
+  "bn" : "id_1",
+  "n" : "Speed_1",
+  "v" : "5",
+  "bt" : 1613724851123
+}, {
+  "bn" : "id_2",
+  "n" : "Speed_2",
+  "v" : "4",
+  "bt" : 1613724851123
+} ]
+```

@@ -1,5 +1,5 @@
 {
-    "rest_server_port": 48890,
+    "rest_server_port": 48891,
     "mqtt_broker_ip": "emq-adeptness.iot.ikerlan.es",
     "mqtt_broker_port": 1883,
     "mqtt_qos": 0,
