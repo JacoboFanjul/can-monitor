@@ -6,6 +6,7 @@
  */
 
 /* Include */
+#include <math.h>
 #include <time.h>
 #include <sys/time.h>
 
@@ -86,7 +87,7 @@ static void usr_handler(int i)
 static void usage(void)
 {
     printf("Options: \n");
-    printf("   -c, --config         : Use Config file, mandatory\n");
+    printf("   -c, --config         : Use Config file\n");
     printf("   -h, --help           : Show this text\n");
     printf("   -n, --name=<name>    : Set the device service name\n");
 }
@@ -421,7 +422,74 @@ void print_struct()
         printf("\tNULL\n\t--------\n");
     }
 }
-#endif 
+#endif
+
+/**
+ * @brief  Mask data sequence and return from init bit to end bit
+ *
+ * For every sensor in sensorList matching a given CAN frame ID, sets sensor->value
+*/
+uint64_t mask_can_frame(struct can_frame *frame, uint32_t init_bit, uint32_t end_bit)
+{
+    // ToDo: handle input args exceptions such as init_bit > end_bit
+    uint32_t var_length;
+    uint64_t mask;
+    uint64_t uni_data;
+    uint64_t var_value;
+    uint32_t mask_shift;
+    var_length = end_bit - init_bit + 1;   // e.g. end_bit = 5, init_bit = 2 => var_length = 4
+    mask = 0x1ULL;                         // 0 ... 00001
+    mask = mask << var_length;                      // 0 ... 10000
+    --mask;                                         // 0 ... 01111
+    uni_data = 0x0ULL;                     // 0 ... 00000
+    for (ii = 0; ii < frame->can_dlc; ii++)
+    {
+        uni_data = (uni_data << 8) | (uint64_t)frame->data[ii];
+    }
+    mask_shift = 8*((uint32_t)frame->can_dlc) - var_length - init_bit;
+    mask = mask << mask_shift;
+    var_value = mask & uni_data;
+    var_value = var_value >> mask_shift;
+    return var_value;
+}
+
+/**
+ * @brief  CAN frame parse function
+ *
+ * For every sensor in sensorList matching a given CAN frame ID, sets sensor->value
+*/
+int parse_can_frame(struct can_frame *frame)
+{
+    ListSensors *s_listptr;
+
+    for (unsigned int i = 0; i < sensors_table->size; ++i)
+    {
+        s_listptr = sensors_table->array[i];
+
+        while (s_listptr != NULL)
+        {
+            sensor *sensor = malloc(sizeof *sensor);
+            sensor = s_listptr->sensor;
+            // TODO Def function that casts value from sensor->type to char
+            if (frame->can_id == sensor->can_id)
+            {
+                uint64_t yalocambiaras = mask_can_frame(frame, sensor->init_bit, sensor->end_bit)
+            }
+            printf("ID: %s", (char*)sensor->id);
+            printf(". Name: %s", sensor->name);
+            printf(". Type: %s", sensor->type);
+            printf(". CanID: %d", sensor->can_id);
+            printf(". Init bit: %d", sensor->init_bit);
+            printf(". End bit: %d", sensor->end_bit);
+            printf(". Sampling_rate: %d", sensor->sampling_rate);
+            printf(". Value: %s", sensor->value);
+            printf(". Timestamp: %ld\n", sensor->timestamp);
+
+            s_listptr = s_listptr->next;
+        }
+    }
+}
+
 /**
  * @brief  Main
  *
@@ -514,7 +582,7 @@ int main(int argc, char *argv[])
     status = unconfigured;
     restart_mqtt = 0;
 
-    // Init CAN socket:
+    // ToDo: Wrap CAN init, add OS-level CAN ifup
     int sockfd;
     sockfd = socket(PF_CAN, SOCK_RAW, CAN_RAW);
 
