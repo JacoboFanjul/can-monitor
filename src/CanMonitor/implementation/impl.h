@@ -55,13 +55,6 @@
 #define JSON_KEY_MONITORING_AGENT_STATUS "status"
 #define JSON_KEY_CMD_EXECUTE_ORDER "order"
 
-#define JSON_KEY_SENSOR_MEASUREMENTS_ID "sensor-id"
-#define JSON_KEY_SENSOR_MEASUREMENTS_DATA "sensor-data"
-#define JSON_KEY_SENSOR_MEASUREMENTS_NAME "name"
-#define JSON_KEY_SENSOR_MEASUREMENTS_TYPE "value-type"
-#define JSON_KEY_SENSOR_MEASUREMENTS_VALUE "value"
-#define JSON_KEY_SENSOR_MEASUREMENTS_TIMESTAMP "timestamp"
-
 #define JSON_KEY_ERROR_MESSAGE "message"
 
 /* Structs */
@@ -101,8 +94,5 @@ int update_connection_configuration(char **values);
 // Monitoring agent execution
 int read_monitoring_agent_status(char **readings);
 int cmd_execute_configuration(char **values);
-
-// Sensors Measurements
-int read_sensor_measurements(char **readings, query_pairs *queries);
 
 #endif

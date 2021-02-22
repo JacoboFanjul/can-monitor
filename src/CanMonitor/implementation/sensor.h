@@ -22,6 +22,13 @@
 #define JSON_KEY_SENSOR_CONF_VALUE "value"
 #define JSON_KEY_SENSOR_CONF_RATE "sampling-rate"
 
+#define JSON_KEY_SENSOR_MEASUREMENTS_ID "sensor-id"
+#define JSON_KEY_SENSOR_MEASUREMENTS_DATA "sensor-data"
+#define JSON_KEY_SENSOR_MEASUREMENTS_NAME "name"
+#define JSON_KEY_SENSOR_MEASUREMENTS_TYPE "value-type"
+#define JSON_KEY_SENSOR_MEASUREMENTS_VALUE "value"
+#define JSON_KEY_SENSOR_MEASUREMENTS_TIMESTAMP "timestamp"
+
 /* Structs */
 typedef struct sensor
 {
@@ -42,4 +49,6 @@ int update_sensors_configuration(char **values, query_pairs *queries);
 int read_sensors_configuration(char **readings);
 int delete_sensors_configuration(char **values, query_pairs *queries);
 
+// Sensors Measurements
+int read_sensor_measurements(char **readings, query_pairs *queries);
 #endif
