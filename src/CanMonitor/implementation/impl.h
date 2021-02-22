@@ -51,25 +51,6 @@
 #define JSON_KEY_CONNECTION_CONF_SETTINGS "connection-settings"
 #define JSON_KEY_CONNECTION_CONF_KEY "key"
 #define JSON_KEY_CONNECTION_CONF_VALUE "value"
-
-#define JSON_KEY_SENSOR_CONF_ID "sensor-id"
-#define JSON_KEY_SENSOR_CONF_NAME "sensor-name"
-#define JSON_KEY_SENSOR_CONF_TYPE "sensor-type"
-#define JSON_KEY_SENSOR_CONF_SETTINGS "sensor-settings"
-#define JSON_KEY_SENSOR_CONF_KEY "key"
-#define JSON_KEY_SENSOR_CONF_VALUE "value"
-#define JSON_KEY_SENSOR_CONF_RATE "sampling-rate"
-
-#define JSON_KEY_SENSORGROUPS_CONF_ID "sensorgroup-id"
-#define JSON_KEY_SENSORGROUPS_CONF_PUBLISH_RATE "publish-rate"
-#define JSON_KEY_SENSORGROUPS_CONF_SENSOR_LIST "sensor-list"
-#define JSON_KEY_SENSORGROUPS_CONF_SENSOR_ID "sensor-id"
-#define JSON_KEY_SENSORGROUPS_CONF_SENSOR_NAME "sensor-name"
-#define JSON_KEY_SENSORGROUPS_CONF_SENSOR_TYPE "sensor-type"
-#define JSON_KEY_SENSORGROUPS_CONF_SENSOR_SETTINGS "sensor-settings"
-#define JSON_KEY_SENSORGROUPS_CONF_SENSOR_KEY "key"
-#define JSON_KEY_SENSORGROUPS_CONF_SENSOR_VALUE "value"
-#define JSON_KEY_SENSORGROUPS_CONF_SENSOR_SAMPLING_RATE "sampling-rate"
     
 #define JSON_KEY_MONITORING_AGENT_STATUS "status"
 #define JSON_KEY_CMD_EXECUTE_ORDER "order"
@@ -92,28 +73,6 @@ typedef struct myAdeptnessService_state
     uint64_t logical_data;
     pid_t main_thread_pid;
 } myAdeptnessService_state;
-
-typedef struct sensor
-{
-    char *id;
-    char *name;
-    char *type;
-    uint32_t can_id;
-    uint32_t init_bit;
-    uint32_t end_bit;
-    uint32_t sampling_rate;
-    char *value;
-    uint64_t timestamp;
-} sensor;
-
-typedef struct sensorgroup
-{
-    char *id;
-    uint32_t publish_rate;
-    size_t sensorcount;
-    char **sensor_list;
-    struct timeval last_publish_time;
-} sensorgroup;
 
 typedef enum {
     unconfigured,
@@ -138,18 +97,6 @@ int update_microservice_configuration(char **values);
 // Connection Configuration
 int read_connection_configuration(char **readings);
 int update_connection_configuration(char **values);
-
-// Sensors Configuration
-int create_sensors_configuration(char **values);
-int update_sensors_configuration(char **values, query_pairs *queries);
-int read_sensors_configuration(char **readings);
-int delete_sensors_configuration(char **values, query_pairs *queries);
-
-// Sensorgroup subscription
-int create_sensorgroups_subscription(char **values);
-int update_sensorgroups_subscription(char **values, query_pairs *queries);
-int read_sensorgroups_subscription(char **readings);
-int delete_sensorgroups_subscription(char **values, query_pairs *queries);
 
 // Monitoring agent execution
 int read_monitoring_agent_status(char **readings);

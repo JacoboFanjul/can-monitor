@@ -86,13 +86,15 @@ file (GLOB C_FILES ${C_FILES} CanMonitor/common/*.c)
 file (GLOB C_FILES ${C_FILES} CanMonitor/mqtt/*.c)
 file (GLOB C_FILES ${C_FILES} CanMonitor/rest_server/*.c)
 file (GLOB C_FILES ${C_FILES} CanMonitor/implementation/*.c)
+file (GLOB C_FILES ${C_FILES} CanMonitor/implementation/hashtables/*.c)
 
 # Set header files location
 file (GLOB H_FILES CanMonitor)
 file (GLOB H_FILES ${H_FILES_LOC} CanMonitor/common)
 file (GLOB H_FILES ${H_FILES_LOC} CanMonitor/mqtt)
 file (GLOB H_FILES ${H_FILES_LOC} CanMonitor/rest_server)
-file (GLOB H_FILES ${H_FILES_LOC} CanMonitor/aux)
+file (GLOB H_FILES ${H_FILES_LOC} CanMonitor/implementation)
+file (GLOB H_FILES ${H_FILES_LOC} CanMonitor/implementation/hashtables)
 
 
 # Set libraries

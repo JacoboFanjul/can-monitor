@@ -1,5 +1,7 @@
 #include "rest_server_impl.h"
 #include "../implementation/impl.h"
+#include "../implementation/sensor.h"
+#include "../implementation/sensorgroup.h"
 
 adeptness_rest_response myAdeptnessService_get_handler(void *impl, const char *devname, char *url, char **readings, query_pairs *queries)
 {

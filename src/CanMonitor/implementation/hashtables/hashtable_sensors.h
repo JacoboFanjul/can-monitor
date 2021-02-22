@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "impl.h"
+#include "../sensor.h"
 
 /*
  * @key: The key string of a pair

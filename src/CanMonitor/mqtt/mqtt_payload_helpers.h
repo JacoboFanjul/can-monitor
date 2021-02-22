@@ -1,6 +1,6 @@
 #include <stdint.h>
 
-#include "../implementation/impl.h"
+#include "../implementation/sensorgroup.h"
 
 const char *create_discovery_payload(void);
 

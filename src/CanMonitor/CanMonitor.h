@@ -1,9 +1,10 @@
 #ifndef _CAN_MONITOR_H
 #define _CAN_MONITOR_H
 
-#include "implementation/hashtable_common.h"
-#include "implementation/hashtable_sensors.h"
-#include "implementation/hashtable_sensorgroups.h"
+#include "implementation/hashtables/hashtable_common.h"
+#include "implementation/hashtables/hashtable_sensors.h"
+#include "implementation/hashtables/hashtable_sensorgroups.h"
+#include "implementation/hashtables/hashtable_can.h"
 #include "implementation/impl.h"
 
 // Aux for dev only:
@@ -15,6 +16,7 @@ extern ms_status status;
 
 extern HashTableSensors *sensors_table;
 extern HashTableSensorgroups *sensorgroup_table;
+extern HashTableCan *can_ids_table;
 
 extern int rest_server_port;
 extern char *mqtt_broker_host;

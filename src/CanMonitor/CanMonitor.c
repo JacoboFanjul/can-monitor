@@ -19,6 +19,7 @@
 
 #define SENSORS_TABLE_SIZE 2
 #define SENSORGROUPS_TABLE_SIZE 3
+#define CAN_IDS_TABLE_SIZE 5
 
 // TODO delete test part
 #define MQTT_API_PREFIX "test/adms/v2"
@@ -34,6 +35,8 @@ uint8_t can_up;
 
 HashTableSensors *sensors_table;
 HashTableSensorgroups *sensorgroup_table;
+HashTableCan *can_ids_table;
+
 
 // REST config
 int rest_server_port;
@@ -134,7 +137,6 @@ static bool test_arg(int argc, char *argv[], int *pos, const char *pshort, const
 
 int get_info_from_config_file(char *config_file)
 {
-
     printf("-- Read config file: %s\n", config_file);
 
     if (access(config_file, F_OK) == -1)
@@ -607,6 +609,7 @@ int main(int argc, char *argv[])
 
     sensors_table = hts_create(SENSORS_TABLE_SIZE);
     sensorgroup_table = htsg_create(SENSORGROUPS_TABLE_SIZE);
+    can_ids_table = htcan_create(CAN_IDS_TABLE_SIZE);
 
     // TODO delete, only for dev
     #if DEV
