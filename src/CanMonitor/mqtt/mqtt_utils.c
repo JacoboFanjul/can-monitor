@@ -7,12 +7,13 @@ extern int mqtt_qos;
 
 static MQTTClient mqtt_client;
 
-int initializeMQTT(char *mqttBrokerHost, int mqttBrokerPort, int mqttQoS, char *mqttUsername, char *clientIdentifier) {
+int initialize_mqtt(char *mqttBrokerHost, int mqttBrokerPort, int mqttQoS, char *mqttUsername, char *clientIdentifier) {
+    printf("-- Initialize MQTT:\n");
     /* mosquitto init */
-    printf("HOST: %s\n", mqttBrokerHost);
-    printf("PORT: %d\n", mqttBrokerPort);
-    printf("QoS: %d\n", mqttQoS);
-    printf("USERNAME: %s\n", mqttUsername);
+    printf("\t- HOST: %s\n", mqttBrokerHost);
+    printf("\t- PORT: %d\n", mqttBrokerPort);
+    printf("\t- QoS: %d\n", mqttQoS);
+    printf("\t- USERNAME: %s\n", mqttUsername);
 
     char mqtt_host[100];
     sprintf(mqtt_host, "tcp://%s:%d", mqttBrokerHost, mqttBrokerPort);
@@ -28,7 +29,7 @@ int initializeMQTT(char *mqttBrokerHost, int mqttBrokerPort, int mqttQoS, char *
     mqtt_qos = mqttQoS;
     int rc;
     if ((rc = MQTTClient_connect(mqtt_client, &connOpts)) != MQTTCLIENT_SUCCESS) {
-        printf("Failed to connect, return code %d\n", rc);
+        printf("ERR: Failed to connect, return code %d\n", rc);
         return -1;
     }
     printf("-- MQTT client connected to broker\n");

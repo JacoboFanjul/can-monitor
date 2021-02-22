@@ -251,7 +251,7 @@ adeptness_rest_server *adeptness_rest_server_create(uint16_t port, adeptness_err
     /* Start http server */
 
     //iot_log_debug (lc, "Starting HTTP server on port %d", port);
-    printf("Starting HTTP server on port: %d\n", port);
+    printf("-- Starting HTTP server on port: %d\n", port);
     svr->daemon = MHD_start_daemon(flags, port, 0, 0, http_handler, svr, MHD_OPTION_END);
     if (svr->daemon == NULL)
     {

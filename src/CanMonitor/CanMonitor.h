@@ -1,7 +1,9 @@
 #ifndef _CAN_MONITOR_H
 #define _CAN_MONITOR_H
 
-#include "implementation/hash_table.h"
+#include "implementation/hashtable_common.h"
+#include "implementation/hashtable_sensors.h"
+#include "implementation/hashtable_sensorgroups.h"
 #include "implementation/impl.h"
 
 // Aux for dev only:
@@ -30,9 +32,13 @@ extern char *canport;
 extern int bitrate;
 
 
-int getInfoFromEnvironmentVariables (void);
+int get_info_from_environment_variables(void);
 
-int read_config_file(char *config_file);
+int get_info_from_config_file(char *config_file);
+
+uint64_t mask_can_frame(struct can_frame *frame, uint32_t init_bit, uint32_t end_bit);
+
+int parse_can_frame(struct can_frame *frame);
 
 // TODO Delete
 #if DEV

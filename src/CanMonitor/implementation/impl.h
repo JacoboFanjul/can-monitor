@@ -123,8 +123,6 @@ typedef enum {
     exit_ms
 } ms_status;
 
-bool adeptness_get_random(void *impl);
-
 int can_read(int can_socket, struct can_frame *frame);
 
 // /* Service callbacks functions */
@@ -134,24 +132,30 @@ void myAdeptnessService_stop(void *impl, bool force);
 // Helper function to create error messsages
 void create_error_message(char **values, char *message);
 
+// Setup
 int update_microservice_configuration(char **values);
 
+// Connection Configuration
 int read_connection_configuration(char **readings);
 int update_connection_configuration(char **values);
 
+// Sensors Configuration
 int create_sensors_configuration(char **values);
 int update_sensors_configuration(char **values, query_pairs *queries);
 int read_sensors_configuration(char **readings);
 int delete_sensors_configuration(char **values, query_pairs *queries);
 
-int create_sensorgroups_configuration(char **values);
-int update_sensorgroups_configuration(char **values, query_pairs *queries);
-int read_sensorgroups_configuration(char **readings);
-int delete_sensorgroups_configuration(char **values, query_pairs *queries);
+// Sensorgroup subscription
+int create_sensorgroups_subscription(char **values);
+int update_sensorgroups_subscription(char **values, query_pairs *queries);
+int read_sensorgroups_subscription(char **readings);
+int delete_sensorgroups_subscription(char **values, query_pairs *queries);
 
+// Monitoring agent execution
 int read_monitoring_agent_status(char **readings);
 int cmd_execute_configuration(char **values);
 
+// Sensors Measurements
 int read_sensor_measurements(char **readings, query_pairs *queries);
 
 #endif

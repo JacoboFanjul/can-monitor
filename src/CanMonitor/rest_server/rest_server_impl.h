@@ -18,24 +18,6 @@
 
 
 // /* Service callbacks functions */
-adeptness_rest_response get_config_connection_handler(char **readings);
-adeptness_rest_response get_config_sensors_handler(char **readings);
-adeptness_rest_response get_config_sensorgroups_handler(char **readings);
-adeptness_rest_response get_agentStatus_handler(char **readings);
-adeptness_rest_response get_sensors_measurements_handler(char **readings, query_pairs *queries);
-
-adeptness_rest_response put_setup_handler(char **values);
-adeptness_rest_response put_config_connection_handler(char **values);
-adeptness_rest_response put_config_sensors_handler(char **values, query_pairs *queries);
-adeptness_rest_response put_config_sensorgroups_handler(char **values, query_pairs *queries);
-adeptness_rest_response put_cmdExecute_handler(char **values);
-
-adeptness_rest_response post_config_sensors_handler(char **values);
-adeptness_rest_response post_config_sensorgroups_handler(char **values);
-
-adeptness_rest_response delete_config_sensors_handler(char **values, query_pairs *queries);
-adeptness_rest_response delete_config_sensorgroups_handler(char **values, query_pairs *queries);
-
 adeptness_rest_response myAdeptnessService_get_handler(void *impl, const char *devname, char *url, char **readings, query_pairs *queries);
 adeptness_rest_response myAdeptnessService_put_handler(void *impl, const char *devname, char *url, char **values, query_pairs *queries);
 adeptness_rest_response myAdeptnessService_post_handler(void *impl, const char *devname, char *url, char **values, query_pairs *queries);

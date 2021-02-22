@@ -349,23 +349,21 @@ void adeptness_service_start(adeptness_service *svc, adeptness_error *err)
 
     if (err->code == 0)
     {
-        printf("Service started in: %ld ms\n", device_millitime() - svc->starttime);
-        printf("Listening on port: %d\n", svc->port);
+        printf("-- Service started in: %ld ms\n", device_millitime() - svc->starttime);
+        printf("-- Listening on port: %d\n", svc->port);
     }
 }
 
 void adeptness_service_stop(adeptness_service *svc, bool force, adeptness_error *err)
 {
     *err = ADEPTNESS_OK;
-    printf("Stop adeptness service\n");
+    printf("-- Stop adeptness service\n");
 
     if (svc->daemon)
     {
         adeptness_rest_server_destroy(svc->daemon);
     }
     svc->userfns.stop(svc->userdata, force);
-
-    printf("Stopped adeptness service\n");
 }
 
 void adeptness_service_free(adeptness_service *svc)

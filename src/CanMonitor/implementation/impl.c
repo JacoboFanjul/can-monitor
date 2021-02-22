@@ -13,25 +13,6 @@
 
 /* Functions */
 
-/**
- * @brief  Adeptness  template get random
- *
- * Random measures 
- *
- * @param impl ...
- *
- * @return Result of parsing
- */
-bool adeptness_get_random(void *impl)
-{
-    myAdeptnessService_state *st = (myAdeptnessService_state *)impl;
-    //unsigned char buffer[DEF_BUFF_SIZE];
-
-    st->logical_data = rand() % 100;
-
-    return true;
-}
-
 int can_read(int can_socket, struct can_frame *frame)
 {
     // Try to read a complete frame from can interface:
@@ -80,7 +61,7 @@ void create_error_message(char **values, char *message)
 
 int update_microservice_configuration(char **values)
 {
-    printf("Update microservice configuration\n");
+    printf("-- Update microservice configuration\n");
     JSON_Value *jval = json_parse_string(*values);
     JSON_Object *jobj = json_value_get_object(jval);
 
@@ -282,7 +263,7 @@ int update_connection_configuration(char **values)
 
 int create_sensors_configuration(char **values)
 {
-    printf("Create sensor configuration\n");
+    printf("-- Create sensor configuration\n");
 
     JSON_Value *jval = json_parse_string(*values);
     JSON_Object *jobj = json_value_get_object(jval);
@@ -292,6 +273,7 @@ int create_sensors_configuration(char **values)
         json_object_get_value(jobj, JSON_KEY_SENSOR_CONF_SETTINGS) != NULL)
     {
         char *id = strdup(json_object_get_string(jobj, JSON_KEY_SENSOR_CONF_ID));
+        printf("\t- Sensor id: %s\n", id);
 
         sensor *sens = hts_get(sensors_table, id);
         if (sens != NULL)
@@ -392,12 +374,14 @@ int create_sensors_configuration(char **values)
     {
         status = configured;
     }
+
+    printf("\t- Sensor created\n");
     return OK;
 }
 
 int update_sensors_configuration(char **values, query_pairs *queries)
 {
-    printf("Update variables configuration\n");
+    printf("-- Update variables configuration\n");
     int response = delete_sensors_configuration(values, queries);
     if (response != OK)
     {
@@ -409,11 +393,13 @@ int update_sensors_configuration(char **values, query_pairs *queries)
         return response;
     }
     strcpy(*values, "");
+    printf("\t- Sensor updated\n");
     return OK;
 }
 
 int delete_sensors_configuration(char **values, query_pairs *queries)
 {
+    printf("-- Delete sensor configuration\n");
     query_pairs *tmp;
     tmp = queries;
     char* id = NULL;
@@ -422,12 +408,12 @@ int delete_sensors_configuration(char **values, query_pairs *queries)
         if(strcmp(tmp->name, QUERY_KEY_ID) == 0)
         {
             id = strdup(tmp->value);
-            printf("Delete sensor with id %s\n", id);
+            printf("\t- Sensor id: %s\n", id);
             extern HashTableSensors *sensors_table;
             sensor *sens = hts_delete(sensors_table, id);
             if (sens != NULL)
             {
-                printf("Sensor with id %s deleted\n", sens->id);
+                printf("\t- Sensor deleted\n");
             }
             else
             {
@@ -442,7 +428,7 @@ int delete_sensors_configuration(char **values, query_pairs *queries)
     }
     if (id == NULL)
     {
-        printf("Delete sensor request without id\n");
+        printf("\t- Delete sensor request without id\n");
         create_error_message(values, "There is no id query.");
         return ERROR;
     }
@@ -484,7 +470,7 @@ int delete_sensors_configuration(char **values, query_pairs *queries)
 
 int read_sensors_configuration(char **readings)
 {
-    printf("Read Sensors Configuration\n");
+    printf("-- Read Sensors Configuration\n");
     extern HashTableSensors *sensors_table;
     
     JSON_Value *general_branch = json_value_init_array();
@@ -506,6 +492,8 @@ int read_sensors_configuration(char **readings)
             json_object_set_string(leaf_object, JSON_KEY_SENSOR_CONF_ID, sensor->id);
             json_object_set_string(leaf_object, JSON_KEY_SENSOR_CONF_NAME, sensor->name);
             json_object_set_string(leaf_object, JSON_KEY_SENSOR_CONF_TYPE, sensor->type);
+
+            printf("\t- Sensor id: %s\n", sensor->id);
 
             JSON_Value *settings_array_value = json_value_init_array();
             JSON_Array *settings_array_object = json_value_get_array(settings_array_value);
@@ -542,12 +530,14 @@ int read_sensors_configuration(char **readings)
 
     *readings = malloc(strlen(json_serialize_to_string(general_branch)) * sizeof(char));
     strcpy(*readings, json_serialize_to_string(general_branch));
+
+    printf("\t- Finished reading sensor configuration\n");
     return OK;
 }
 
-int create_sensorgroups_configuration(char **values)
+int create_sensorgroups_subscription(char **values)
 {
-    printf("Create sensorgroups subscription\n");
+    printf("-- Create sensorgroup subscription\n");
     
     JSON_Value *jval = json_parse_string(*values);
     JSON_Object *jobj = json_value_get_object(jval);
@@ -556,10 +546,12 @@ int create_sensorgroups_configuration(char **values)
     json_object_get_value(jobj, JSON_KEY_SENSORGROUPS_CONF_SENSOR_LIST) != NULL)
     {
         char *id = strdup(json_object_get_string(jobj, JSON_KEY_SENSORGROUPS_CONF_ID));
+        printf("\t- Sensorgroup id: %s\n", id);
         sensorgroup *sg = htsg_get(sensorgroup_table, id);
         if (sg != NULL)
         {
             create_error_message(values, "A sensorgroup with that id already exists");
+            printf("\t- Id %s, already exists\n", id);
             return ERROR;
         }
         free(sg);
@@ -575,7 +567,7 @@ int create_sensorgroups_configuration(char **values)
             JSON_Value *sensors_value = json_array_get_value(sgSensorlist, i);
             JSON_Object *sensors_object = json_value_get_object(sensors_value);
 
-            // TODO complete sensor config
+            // Complete sensor config
             if (json_object_get_value(sensors_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_ID) != NULL && json_object_get_value(sensors_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_NAME) != NULL &&
             json_object_get_value(sensors_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_TYPE) != NULL && json_object_get_value(sensors_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_SETTINGS) != NULL &&
             json_object_get_value(sensors_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_SAMPLING_RATE) != NULL)
@@ -586,6 +578,7 @@ int create_sensorgroups_configuration(char **values)
                 if (sens != NULL)
                 {
                     hts_delete(sensors_table, sensor_id);
+                    printf("\t- Sensor %s deleted\n", sensor_id);
                 }
                 
                 sens = malloc(sizeof(sensor));
@@ -674,10 +667,12 @@ int create_sensorgroups_configuration(char **values)
                 sens->value = "";
                 sens->timestamp = 0;
                 hts_put(sensors_table, sens->id, sens);
+                printf("\t- Sensor %s created\n", sens->id);
                 
                 
                 sensor_list[i] = malloc(sizeof(char*));
                 strcpy(sensor_list[i], sensor_id);
+                printf("\t- Sensor %s added to the list\n", sensor_id);
             }
 
             // Only id
@@ -692,6 +687,7 @@ int create_sensorgroups_configuration(char **values)
                 {
                     sensor_list[i] = malloc(sizeof(char*));
                     strcpy(sensor_list[i], sensor_id);
+                    printf("\t- Sensor %s added to the list\n", sensor_id);
                 }
                 else
                 {
@@ -713,6 +709,8 @@ int create_sensorgroups_configuration(char **values)
         sg->last_publish_time = (struct timeval){0};
         htsg_put(sensorgroup_table, sg->id, sg);
 
+        printf("\t- Sensorgroup %s created\n", sg->id);
+
         strcpy(*values, "");
         extern ms_status status;
         if (status != running)
@@ -729,27 +727,28 @@ int create_sensorgroups_configuration(char **values)
 }
 
 // TODO find a way for rollback if it is not succesful
-int update_sensorgroups_configuration(char **values, query_pairs *queries)
+int update_sensorgroups_subscription(char **values, query_pairs *queries)
 {
-    printf("Update sensorgroups subscriptions\n");
-    int response = delete_sensorgroups_configuration(values, queries);
+    printf("-- Update sensorgroups subscriptions\n");
+    int response = delete_sensorgroups_subscription(values, queries);
     if (response != OK)
     {
         return response;
     }
-    response = create_sensorgroups_configuration(values);
+    response = create_sensorgroups_subscription(values);
     if (response != OK)
     {
         return response;
     }
 
     strcpy(*values, "");
+    printf("\t- Sensorgroups updated\n");
     return OK;
 }
 
-int read_sensorgroups_configuration(char **readings)
+int read_sensorgroups_subscription(char **readings)
 {
-    printf("Read Sensorgroups Configuration\n");
+    printf("-- Read Sensorgroups Configuration\n");
     extern HashTableSensorgroups *sensorgroup_table;
     extern HashTableSensors *sensors_table;
 
@@ -769,6 +768,7 @@ int read_sensorgroups_configuration(char **readings)
             JSON_Object *leaf_object = json_value_get_object(leaf_value);
 
             json_object_set_string(leaf_object, JSON_KEY_SENSORGROUPS_CONF_ID, sg->id);
+            printf("\t- Sensorgroup id: %s\n", sg->id);
             json_object_set_number(leaf_object, JSON_KEY_SENSORGROUPS_CONF_PUBLISH_RATE, sg->publish_rate);
 
             JSON_Value *sensors_array_value = json_value_init_array();
@@ -779,6 +779,7 @@ int read_sensorgroups_configuration(char **readings)
                 JSON_Value *sensor_value = json_value_init_object();
                 JSON_Object *sensor_object = json_value_get_object(sensor_value);
                 json_object_set_string(sensor_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_ID, sens->id);
+                printf("\t\t- Sensor %s\n", sens->id);
                 json_object_set_string(sensor_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_NAME, sens->name);
                 json_object_set_string(sensor_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_TYPE, sens->type);
 
@@ -821,14 +822,15 @@ int read_sensorgroups_configuration(char **readings)
 
     *readings = malloc(strlen(json_serialize_to_string(general_branch)) * sizeof(char));
     strcpy(*readings, json_serialize_to_string(general_branch));
+    printf("\t- Finished reading sensorgroups\n");
     return OK;
 
 }
 
 // TODO find a way for rollback if it is not succesful
-int delete_sensorgroups_configuration(char **values, query_pairs * queries)
+int delete_sensorgroups_subscription(char **values, query_pairs * queries)
 {
-    printf("Delete subscriptions\n");
+    printf("-- Delete subscription\n");
 
     query_pairs *tmp;
     tmp = queries;
@@ -838,7 +840,7 @@ int delete_sensorgroups_configuration(char **values, query_pairs * queries)
         if(strcmp(tmp->name, QUERY_KEY_ID) == 0)
         {
             id = strdup(tmp->value);
-            printf("Delete sensorgroup with id %s\n", id);
+            printf("\t- Sensorgroup %s\n", id);
             extern HashTableSensorgroups *sensorgroup_table;
             sensorgroup *sg = htsg_get(sensorgroup_table, id);
             if (sg != NULL)
@@ -878,11 +880,13 @@ int delete_sensorgroups_configuration(char **values, query_pairs * queries)
         create_error_message(values, "There is no id query.");
         return ERROR;
     }
+    printf("\t- Deleted sensorgroups %s\n", id);
     return OK;
 }
 
 int read_monitoring_agent_status(char **readings)
 {
+    printf("-- Read monitoring agent status\n");
     JSON_Value *rval = json_value_init_object();
     JSON_Object *robj = json_value_get_object(rval);
 
@@ -893,31 +897,37 @@ int read_monitoring_agent_status(char **readings)
         json_object_set_string(robj, JSON_KEY_MONITORING_AGENT_STATUS, "executing");
         *readings = malloc(strlen(json_serialize_to_string(rval)) * sizeof(char));
         strcpy(*readings, json_serialize_to_string(rval));
+        printf("\t- Executing\n");
         return OK;
     case configured:
         json_object_set_string(robj, JSON_KEY_MONITORING_AGENT_STATUS, "configured");
         *readings = malloc(strlen(json_serialize_to_string(rval)) * sizeof(char));
         strcpy(*readings, json_serialize_to_string(rval));
+        printf("\t- Configured\n");
         return OK;
     case unconfigured:
         json_object_set_string(robj, JSON_KEY_MONITORING_AGENT_STATUS, "unconfigured");
         *readings = malloc(strlen(json_serialize_to_string(rval)) * sizeof(char));
         strcpy(*readings, json_serialize_to_string(rval));
+        printf("\t- Unconfigured\n");
         return OK;
     case error:
         json_object_set_string(robj, JSON_KEY_MONITORING_AGENT_STATUS, "error");
         *readings = malloc(strlen(json_serialize_to_string(rval)) * sizeof(char));
         strcpy(*readings, json_serialize_to_string(rval));
+        printf("\t- Error\n");
         return OK;
     case exit_ms:
         json_object_set_string(robj, JSON_KEY_ERROR_MESSAGE, "Exiting microservice");
         *readings = malloc(strlen(json_serialize_to_string(rval)) * sizeof(char));
         strcpy(*readings, json_serialize_to_string(rval));
+        printf("\t- Exiting\n");
         return ERROR;
     default:
         json_object_set_string(robj, JSON_KEY_ERROR_MESSAGE, "Unknown error");
         *readings = malloc(strlen(json_serialize_to_string(rval)) * sizeof(char));
         strcpy(*readings, json_serialize_to_string(rval));
+        printf("\t- Unkown\n");
         return ERROR;
     }
 }
@@ -936,14 +946,14 @@ int cmd_execute_configuration(char **values)
         {
             if(status == configured)
             {
-                printf("Changing status to executing...\n");
+                printf("-- Changing status to executing...\n");
                 status = running;
                 strcpy(*values, "");
                 return OK;
             }
             else 
             {
-                printf("Status was not configured...\n");
+                printf("\t- Status was not configured...\n");
                 create_error_message(values, "Status was not configured.");
                 return ERROR;
             }
@@ -952,14 +962,14 @@ int cmd_execute_configuration(char **values)
         {
             if(status == running)
             {
-                printf("Changing status to configured...\n");
+                printf("-- Changing status to configured...\n");
                 status = configured;
                 strcpy(*values, "");
                 return OK;
             }
             else
             {
-                printf("Status was not running...\n");
+                printf("\t- Status was not running...\n");
                 create_error_message(values, "Status was not running.");
                 return ERROR;
             }
@@ -980,7 +990,7 @@ int cmd_execute_configuration(char **values)
 
 int read_sensor_measurements(char **readings, query_pairs *queries)
 {
-    printf("Read Sensor Values\n");
+    printf("-- Read Sensor Values\n");
     query_pairs *tmp;
     tmp = queries;
     char* sensor_id;
@@ -1015,6 +1025,7 @@ int read_sensor_measurements(char **readings, query_pairs *queries)
                     json_object_set_value(leaf_object, JSON_KEY_SENSOR_MEASUREMENTS_DATA, sensor_data);
 
                     json_array_append_value(general_leaves, leaf_value);
+                    printf("\t- Sensor %s: %s\n", sens->id, sens->value);
 
                     *readings = malloc(strlen(json_serialize_to_string(general_branch)) * sizeof(char));
                     strcpy(*readings, json_serialize_to_string(general_branch));
@@ -1070,6 +1081,7 @@ int read_sensor_measurements(char **readings, query_pairs *queries)
                 json_object_set_value(leaf_object, JSON_KEY_SENSOR_MEASUREMENTS_DATA, sensor_data);
 
                 json_array_append_value(general_leaves, leaf_value);
+                printf("\t- Sensor %s: %s\n", sensor->id, sensor->value);
                 listptr = listptr->next;
             }
         }

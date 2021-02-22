@@ -22,8 +22,6 @@ extern int mqtt_qos;
  */
 const char *create_discovery_payload(void)
 {
-
-    printf("Create discovery payload\n");
     JSON_Value *rval = json_value_init_object();
     JSON_Object *robj = json_value_get_object(rval);
 
