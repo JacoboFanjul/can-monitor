@@ -11,7 +11,11 @@
 
 #include "../CanMonitor.h"
 #include "../rest_server/rest_server_impl.h"
+#include "tables/table_can.h"
 
+extern ms_status status;
+extern HashTableSensors *sensors_table;
+extern TableCan *can_ids_table;
 
 /* Functions */
 int create_sensors_configuration(char **values)
@@ -37,7 +41,6 @@ int create_sensors_configuration(char **values)
         free(sens);
 
         char *variableName = strdup(json_object_get_string(jobj, JSON_KEY_SENSOR_CONF_NAME));
-
         char *variableType = strdup(json_object_get_string(jobj, JSON_KEY_SENSOR_CONF_TYPE));
 
         JSON_Array *connectionSettings = json_object_get_array(jobj, JSON_KEY_SENSOR_CONF_SETTINGS);
@@ -113,6 +116,7 @@ int create_sensors_configuration(char **values)
         sens->value = "";
         sens->timestamp = 0;
         hts_put(sensors_table, sens->id, sens);
+        table_can_put(can_ids_table, sens->can_id, strdup(sens->id));
     }
     else
     {
@@ -122,7 +126,6 @@ int create_sensors_configuration(char **values)
     
     strcpy(*values, "");
 
-    extern ms_status status;
     if (status != running)
     {
         status = configured;
@@ -162,10 +165,10 @@ int delete_sensors_configuration(char **values, query_pairs *queries)
         {
             id = strdup(tmp->value);
             printf("\t- Sensor id: %s\n", id);
-            extern HashTableSensors *sensors_table;
             sensor *sens = hts_delete(sensors_table, id);
             if (sens != NULL)
             {
+                table_can_delete(can_ids_table, sens->can_id, strdup(sens->id));
                 printf("\t- Sensor deleted\n");
             }
             else
@@ -186,7 +189,7 @@ int delete_sensors_configuration(char **values, query_pairs *queries)
         return ERROR;
     }
 
-    // TODO borrar de las listas de sensorgroups
+    // Borrar de las listas de sensorgroups
     ListSensorgroups *sg_listptr;
     for (unsigned int i = 0; i < sensorgroup_table->size; ++i) 
     {
@@ -224,7 +227,6 @@ int delete_sensors_configuration(char **values, query_pairs *queries)
 int read_sensors_configuration(char **readings)
 {
     printf("-- Read Sensors Configuration\n");
-    extern HashTableSensors *sensors_table;
     
     JSON_Value *general_branch = json_value_init_array();
     JSON_Array *general_leaves = json_value_get_array(general_branch);
@@ -303,7 +305,6 @@ int read_sensor_measurements(char **readings, query_pairs *queries)
             {
                 sensor_id = strdup(tmp->value);
 
-                extern HashTableSensors *sensors_table;
                 sensor *sens = hts_get(sensors_table, sensor_id);
                 if (sens != NULL)
                 {
@@ -351,7 +352,6 @@ int read_sensor_measurements(char **readings, query_pairs *queries)
     }
     else // Send the values of all sensors
     {
-        extern HashTableSensors *sensors_table;
 
         JSON_Value *general_branch = json_value_init_array();
         JSON_Array *general_leaves = json_value_get_array(general_branch);

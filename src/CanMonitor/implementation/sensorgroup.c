@@ -11,6 +11,13 @@
 
 #include "../CanMonitor.h"
 #include "../rest_server/rest_server_impl.h"
+#include "tables/table_can.h"
+
+extern ms_status status;
+extern HashTableSensors *sensors_table;
+extern HashTableSensorgroups *sensorgroup_table;
+extern TableCan *can_ids_table;
+    
 
 /* Functions */
 int create_sensorgroups_subscription(char **values)
@@ -56,6 +63,7 @@ int create_sensorgroups_subscription(char **values)
                 if (sens != NULL)
                 {
                     hts_delete(sensors_table, sensor_id);
+                    table_can_delete(can_ids_table, sens->can_id, strdup(sens->id));
                     printf("\t- Sensor %s deleted\n", sensor_id);
                 }
                 
@@ -133,6 +141,7 @@ int create_sensorgroups_subscription(char **values)
                     for (size_t j = 0; j < i; j++)
                     {
                         hts_delete(sensors_table, sensor_list[j]);
+                        table_can_put(can_ids_table, sens->can_id, strdup(sens->id));
                     }
                     create_error_message(values, "One of the sensors of the sensorgroup is not correct");
                     return ERROR;
@@ -145,6 +154,7 @@ int create_sensorgroups_subscription(char **values)
                 sens->value = "";
                 sens->timestamp = 0;
                 hts_put(sensors_table, sens->id, sens);
+                table_can_put(can_ids_table, sens->can_id, strdup(sens->id));
                 printf("\t- Sensor %s created\n", sens->id);
                 
                 
@@ -190,7 +200,6 @@ int create_sensorgroups_subscription(char **values)
         printf("\t- Sensorgroup %s created\n", sg->id);
 
         strcpy(*values, "");
-        extern ms_status status;
         if (status != running)
         {
             status = configured;
@@ -227,8 +236,6 @@ int update_sensorgroups_subscription(char **values, query_pairs *queries)
 int read_sensorgroups_subscription(char **readings)
 {
     printf("-- Read Sensorgroups Configuration\n");
-    extern HashTableSensorgroups *sensorgroup_table;
-    extern HashTableSensors *sensors_table;
 
     JSON_Value *general_branch = json_value_init_array();
     JSON_Array *general_leaves = json_value_get_array(general_branch);
@@ -319,7 +326,6 @@ int delete_sensorgroups_subscription(char **values, query_pairs * queries)
         {
             id = strdup(tmp->value);
             printf("\t- Sensorgroup %s\n", id);
-            extern HashTableSensorgroups *sensorgroup_table;
             sensorgroup *sg = htsg_get(sensorgroup_table, id);
             if (sg != NULL)
             {

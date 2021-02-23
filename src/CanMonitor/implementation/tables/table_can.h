@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
 /*
  * @key: The key string of a pair
@@ -16,7 +17,7 @@
  */
 typedef struct ListSensorIds
 {
-        char *key;
+        uint32_t pos;
         char *sensor_id;
         struct ListSensorIds *next;
 } ListSensorIds;
@@ -28,25 +29,23 @@ typedef struct ListSensorIds
  * Each cell of this array is a pointer to the first node of a linked list,
  * because we want our HashTable to use a Chaining collision handling
  */
-typedef struct HashTableCan
+typedef struct TableCan
 {
         unsigned int size;
         ListSensorIds **array;
-} HashTableCan;
+} TableCan;
 
 
 
 // Sensorgroups Table
-HashTableCan * htcan_create(unsigned int size);
+TableCan * table_can_create(unsigned int size);
 
-int htcan_put(HashTableCan *hashtable_can, const char *key, char *value);
+int table_can_put(TableCan *table_can, uint32_t key, char *value);
 
-void node_handler_can(HashTableCan *hashtable_can, ListSensorIds *node);
+void node_handler_can(TableCan *table_can, ListSensorIds *node);
 
-char * htcan_get(HashTableCan *hashtable_can, const char *key);
+char * table_can_delete(TableCan *table_can, uint32_t pos, char * sensor_id);
 
-char * htcan_delete(HashTableCan *hashtable_can, const char *key);
-
-void htcan_free(HashTableCan *hashtable_can);
+void table_can_free(TableCan *table_can);
 
 #endif

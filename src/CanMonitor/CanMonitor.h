@@ -1,11 +1,20 @@
 #ifndef _CAN_MONITOR_H
 #define _CAN_MONITOR_H
 
-#include "implementation/hashtables/hashtable_common.h"
-#include "implementation/hashtables/hashtable_sensors.h"
-#include "implementation/hashtables/hashtable_sensorgroups.h"
-#include "implementation/hashtables/hashtable_can.h"
+#include "implementation/tables/hashtable_common.h"
+#include "implementation/tables/hashtable_sensors.h"
+#include "implementation/tables/hashtable_sensorgroups.h"
+#include "implementation/tables/table_can.h"
 #include "implementation/impl.h"
+
+/* Macro */
+#define ERR_CHECK(x)                                          \
+    if (x.code)                                               \
+    {                                                         \
+        fprintf(stderr, "Error: %d: %s\n", x.code, x.reason); \
+        adeptness_service_free(service);                      \
+        return x.code;                                        \
+    }
 
 // Aux for dev only:
 #define EXISTS_CAN 0
@@ -16,7 +25,7 @@ extern ms_status status;
 
 extern HashTableSensors *sensors_table;
 extern HashTableSensorgroups *sensorgroup_table;
-extern HashTableCan *can_ids_table;
+extern TableCan *can_ids_table;
 
 extern int rest_server_port;
 extern char *mqtt_broker_host;
@@ -47,9 +56,10 @@ int parse_can_frame(struct can_frame *frame);
 void print_sensorgroup(sensorgroup *sensorgroup);
 void print_sensor(sensor *sensor);
 void create_dummy_struct(void);
+void print_sensors_table(void);
+void print_sensorgroups_table(void);
+void print_canid_table(void);
 void print_struct(void);
-void create_test_struct(void);
-int print_test_table(void);
 #endif
 
 #endif

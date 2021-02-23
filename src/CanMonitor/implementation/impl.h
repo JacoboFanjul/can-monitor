@@ -22,15 +22,6 @@
 #include <sys/socket.h>
 #include <linux/can.h>
 
-/* Macro */
-#define ERR_CHECK(x)                                          \
-    if (x.code)                                               \
-    {                                                         \
-        fprintf(stderr, "Error: %d: %s\n", x.code, x.reason); \
-        adeptness_service_free(service);                      \
-        return x.code;                                        \
-    }
-
 /* Default values */
 
 #define CAN_INTERFACE "can0"

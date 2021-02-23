@@ -35,7 +35,7 @@ uint8_t can_up;
 
 HashTableSensors *sensors_table;
 HashTableSensorgroups *sensorgroup_table;
-HashTableCan *can_ids_table;
+TableCan *can_ids_table;
 
 
 // REST config
@@ -352,7 +352,7 @@ void create_dummy_struct()
 
 }
 
-void print_struct()
+void print_sensors_table()
 {
     printf("**************************\n******** Sensors *********\n**************************\n");
     ListSensors *s_listptr;
@@ -386,7 +386,10 @@ void print_struct()
         }
         printf("\tNULL\n\t--------\n");
     }
+}
 
+void print_sensorgroups_table()
+{
     printf("**************************\n****** Sensorgroups ******\n**************************\n");
     ListSensorgroups *sg_listptr;
     for (unsigned int i = 0; i < sensorgroup_table->size; ++i) 
@@ -423,6 +426,37 @@ void print_struct()
         printf("\tNULL\n\t--------\n");
     }
 }
+
+void print_canid_table()
+{
+    printf("**************************\n******** CanIds *********\n**************************\n");
+    ListSensorIds *s_listptr;
+    for (unsigned int i = 0; i < can_ids_table->size; ++i) 
+    {
+        printf("%d--->", i);
+
+        s_listptr = can_ids_table->array[i];
+        
+
+        while (s_listptr != NULL)
+        {
+            char *sensor_id = strdup(s_listptr->sensor_id);
+                
+            printf("%s--->", sensor_id);
+
+            s_listptr = s_listptr->next;
+        }
+        printf(" NULL\n");
+    }
+}
+
+void print_struct()
+{
+    print_sensors_table();
+    print_sensorgroups_table();
+    print_canid_table();
+}
+
 #endif
 
 /**
@@ -609,7 +643,7 @@ int main(int argc, char *argv[])
 
     sensors_table = hts_create(SENSORS_TABLE_SIZE);
     sensorgroup_table = htsg_create(SENSORGROUPS_TABLE_SIZE);
-    can_ids_table = htcan_create(CAN_IDS_TABLE_SIZE);
+    can_ids_table = table_can_create(CAN_IDS_TABLE_SIZE);
 
     // TODO delete, only for dev
     #if DEV
@@ -724,6 +758,7 @@ int main(int argc, char *argv[])
 
     hts_free(sensors_table);
     htsg_free(sensorgroup_table);
+    table_can_free(can_ids_table);
 
     /* Clean mqtt */
     clean_mqtt();

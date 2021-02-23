@@ -69,7 +69,6 @@ const char * create_data_payload(sensorgroup *sg)
         JSON_Value *sensor_value = json_value_init_object();
         JSON_Object *sensor_object = json_value_get_object(sensor_value);
 
-        // TODO create with real data
         json_object_set_string(sensor_object, "bn", strdup(sens->id));
         json_object_set_string(sensor_object, "n", strdup(sens->name));
         json_object_set_string(sensor_object, "v", strdup(sens->value));
@@ -79,44 +78,4 @@ const char * create_data_payload(sensorgroup *sg)
     }
 
     return json_serialize_to_string(branch);
-    
-            // for (int i = 0; i < sg->sensorcount; i++)
-            // {
-            //     sensor *sens = hts_get(sensors_table, sg->sensor_list[i]);
-            //     JSON_Value *sensor_value = json_value_init_object();
-            //     JSON_Object *sensor_object = json_value_get_object(sensor_value);
-            //     json_object_set_string(sensor_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_ID, sens->id);
-            //     json_object_set_string(sensor_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_NAME, sens->name);
-            //     json_object_set_string(sensor_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_TYPE, sens->type);
-
-            //     JSON_Value *settings_array_value = json_value_init_array();
-            //     JSON_Array *settings_array_object = json_value_get_array(settings_array_value);
-
-            //     JSON_Value *settings_value = json_value_init_object();
-            //     JSON_Object *settings_object = json_value_get_object(settings_value);
-            //     json_object_set_string(settings_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_KEY, "can-id");
-            //     char value[20];
-            //     sprintf(value, "%d", sens->can_id);
-            //     json_object_set_string(settings_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_VALUE, value);
-            //     json_array_append_value(settings_array_object, settings_value);
-
-            //     settings_value = json_value_init_object();
-            //     settings_object = json_value_get_object(settings_value);
-            //     json_object_set_string(settings_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_KEY, "init-bit");
-            //     sprintf(value, "%d", sens->init_bit);
-            //     json_object_set_string(settings_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_VALUE, value);
-            //     json_array_append_value(settings_array_object, settings_value);
-
-            //     settings_value = json_value_init_object();
-            //     settings_object = json_value_get_object(settings_value);
-            //     json_object_set_string(settings_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_KEY, "end-bit");
-            //     sprintf(value, "%d", sens->end_bit);
-            //     json_object_set_string(settings_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_VALUE, value);
-            //     json_array_append_value(settings_array_object, settings_value);
-
-            //     json_object_set_value(sensor_object, JSON_KEY_SENSOR_CONF_SETTINGS, settings_array_value);
-
-            //     json_object_set_number(sensor_object, JSON_KEY_SENSORGROUPS_CONF_SENSOR_SAMPLING_RATE, sens->sampling_rate);
-            //     json_array_append_value(sensors_array_object, sensor_value);
-            // }
 }
