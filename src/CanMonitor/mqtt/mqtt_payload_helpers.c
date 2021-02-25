@@ -6,6 +6,14 @@
 #include <ifaddrs.h>
 #include <stdio.h>
 
+#include <stdio.h> 
+#include <unistd.h> 
+#include <netdb.h> 
+#include <sys/types.h> 
+#include <sys/socket.h> 
+#include <netinet/in.h> 
+#include <signal.h>
+
 #include "mqtt_payload_helpers.h"
 
 #include "../common/json.h"
@@ -59,21 +67,29 @@ const char *create_discovery_payload(void)
     json_object_set_string(leaf_object, "endpoint-type", "http");
     endpoint_object_value = json_value_init_object();
     endpoint_object = json_value_get_object(endpoint_object_value);
-    // TODO coger la IP
+    
+    // TODO fix IP
+    char *IPbuffer;
+    struct hostent *host_entry; 
+    char hostbuffer[256]; 
+    gethostname(hostbuffer, sizeof(hostbuffer)); 
+    host_entry = gethostbyname(hostbuffer); 
+    IPbuffer = inet_ntoa(*((struct in_addr*)host_entry->h_addr_list[0])); 
+    json_object_set_string(endpoint_object, "ip", IPbuffer);
 
-    struct ifaddrs *ifap, *ifa;
-    struct sockaddr_in *sa;
-    char *addr;
+    // struct ifaddrs *ifap, *ifa;
+    // struct sockaddr_in *sa;
+    // char *addr;
 
-    getifaddrs (&ifap);
-    for (ifa = ifap; ifa; ifa = ifa->ifa_next) {
-        if (ifa->ifa_addr && ifa->ifa_addr->sa_family==AF_INET) {
-            sa = (struct sockaddr_in *) ifa->ifa_addr;
-            addr = inet_ntoa(sa->sin_addr);
-            printf("Interface: %s\tAddress: %s\n", ifa->ifa_name, addr);
-        }
-    }
-    freeifaddrs(ifap);
+    // getifaddrs (&ifap);
+    // for (ifa = ifap; ifa; ifa = ifa->ifa_next) {
+    //     if (ifa->ifa_addr && ifa->ifa_addr->sa_family==AF_INET) {
+    //         sa = (struct sockaddr_in *) ifa->ifa_addr;
+    //         addr = inet_ntoa(sa->sin_addr);
+    //         printf("Interface: %s\tAddress: %s\n", ifa->ifa_name, addr);
+    //     }
+    // }
+    // freeifaddrs(ifap);
 
 
     json_object_set_string(endpoint_object, "ip", "127.0.0.1");
