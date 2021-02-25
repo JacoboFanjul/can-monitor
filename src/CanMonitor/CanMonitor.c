@@ -21,12 +21,6 @@
 #define SENSORGROUPS_TABLE_SIZE 3
 #define CAN_IDS_TABLE_SIZE 5
 
-// TODO delete test part
-#define MQTT_API_PREFIX "test/adms/v2"
-#define DATA_TOPIC_PREFIX MQTT_API_PREFIX "/monitor-agent"
-#define DISCOVERY_TOPIC MQTT_API_PREFIX "/discovery"
-
-
 /* Global vars */
 ms_status status;
 uint8_t restart_mqtt;

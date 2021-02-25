@@ -1,6 +1,11 @@
 #include <time.h>
 #include <sys/time.h>
 
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <ifaddrs.h>
+#include <stdio.h>
+
 #include "mqtt_payload_helpers.h"
 
 #include "../common/json.h"
@@ -22,31 +27,59 @@ extern int mqtt_qos;
  */
 const char *create_discovery_payload(void)
 {
-    JSON_Value *rval = json_value_init_object();
+        JSON_Value *rval = json_value_init_object();
     JSON_Object *robj = json_value_get_object(rval);
 
     json_object_set_string(robj, "id", monitor_id);
     json_object_set_string(robj, "name", monitor_id);
-    json_object_set_string(robj, "microservice-type", "monitor-agent");
+    json_object_set_string(robj, "microservice-type", MS_TYPE);
     
     JSON_Value *branch = json_value_init_array();
     JSON_Array *leaves = json_value_get_array(branch);
 
-    JSON_Value *leaf_value_1 = json_value_init_object();
-    JSON_Object *leaf_object_1 = json_value_get_object(leaf_value_1);
-    json_object_set_string(leaf_object_1, "endpoint-type", "mqtt");
-    json_object_set_string(leaf_object_1, "ip", mqtt_broker_host);
-    json_object_set_number(leaf_object_1, "port", mqtt_broker_port);
-    json_object_set_number(leaf_object_1, "qos", mqtt_qos);
-    json_array_append_value(leaves, leaf_value_1);
+    JSON_Value *leaf_value = json_value_init_object();
+    JSON_Object *leaf_object = json_value_get_object(leaf_value);
+    json_object_set_string(leaf_object, "endpoint-type", "mqtt");
 
-    JSON_Value *leaf_value_2 = json_value_init_object();
-    JSON_Object *leaf_object_2 = json_value_get_object(leaf_value_2);
-    json_object_set_string(leaf_object_2, "endpoint-type", "http");
-    json_object_set_string(leaf_object_2, "ip", "");
-    json_object_set_number(leaf_object_2, "port", rest_server_port);
-    json_object_set_number(leaf_object_2, "qos", 0);
-    json_array_append_value(leaves, leaf_value_2);
+    JSON_Value *endpoint_object_value = json_value_init_object();
+    JSON_Object *endpoint_object = json_value_get_object(endpoint_object_value);
+
+    json_object_set_string(endpoint_object, "ip", mqtt_broker_host);
+    json_object_set_number(endpoint_object, "port", mqtt_broker_port);
+    json_object_set_number(endpoint_object, "qos", mqtt_qos);
+    char base_topic[100] = DATA_TOPIC_PREFIX;
+    strcat(base_topic, "/");
+    strcat(base_topic, monitor_id);
+    json_object_set_string(endpoint_object, "base-topic", strdup(base_topic));
+    json_object_set_value(leaf_object, "endpoint-config", endpoint_object_value);
+    json_array_append_value(leaves, leaf_value);
+
+    leaf_value = json_value_init_object();
+    leaf_object = json_value_get_object(leaf_value);
+    json_object_set_string(leaf_object, "endpoint-type", "http");
+    endpoint_object_value = json_value_init_object();
+    endpoint_object = json_value_get_object(endpoint_object_value);
+    // TODO coger la IP
+
+    struct ifaddrs *ifap, *ifa;
+    struct sockaddr_in *sa;
+    char *addr;
+
+    getifaddrs (&ifap);
+    for (ifa = ifap; ifa; ifa = ifa->ifa_next) {
+        if (ifa->ifa_addr && ifa->ifa_addr->sa_family==AF_INET) {
+            sa = (struct sockaddr_in *) ifa->ifa_addr;
+            addr = inet_ntoa(sa->sin_addr);
+            printf("Interface: %s\tAddress: %s\n", ifa->ifa_name, addr);
+        }
+    }
+    freeifaddrs(ifap);
+
+
+    json_object_set_string(endpoint_object, "ip", "127.0.0.1");
+    json_object_set_number(endpoint_object, "port", rest_server_port);
+    json_object_set_value(leaf_object, "endpoint-config", endpoint_object_value);
+    json_array_append_value(leaves, leaf_value);
 
     json_object_set_value(robj, "endpoints", branch);
 

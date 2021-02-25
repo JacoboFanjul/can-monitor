@@ -92,7 +92,7 @@ static int adeptness_ping_handler(void *ctx, char *url, adeptness_http_method me
 
 static int adeptness_info_handler(void *ctx, char *url, adeptness_http_method method, query_pairs *queries, const char *upload_data, size_t upload_data_size, void **reply, size_t *reply_size, const char **reply_type)
 {
-
+    extern char* monitor_id;
     extern int rest_server_port;
     char *IPbuffer;
     struct hostent *host_entry; 
@@ -104,7 +104,7 @@ static int adeptness_info_handler(void *ctx, char *url, adeptness_http_method me
     JSON_Value *rval = json_value_init_object();
     JSON_Object *robj = json_value_get_object(rval);
 
-    json_object_set_number(robj, "id", 0);
+    json_object_set_string(robj, "id", monitor_id);
     json_object_set_string(robj, "name", "string");
     json_object_set_string(robj, "microservice-type", "monitor-agent");
 
@@ -114,9 +114,30 @@ static int adeptness_info_handler(void *ctx, char *url, adeptness_http_method me
     JSON_Value *leaf_value = json_value_init_object();
     JSON_Object *leaf_object = json_value_get_object(leaf_value);
     json_object_set_string(leaf_object, "endpoint-type", "http");
-    json_object_set_string(leaf_object, "ip", IPbuffer);
-    json_object_set_number(leaf_object, "port", rest_server_port);
-    json_object_set_number(leaf_object, "qos", 0);
+
+    JSON_Value *endpoint_object_value = json_value_init_object();
+    JSON_Object *endpoint_object = json_value_get_object(endpoint_object_value);
+    // TODO Fix IP
+    json_object_set_string(endpoint_object, "ip", IPbuffer);
+    json_object_set_number(endpoint_object, "port", rest_server_port);
+    json_object_set_value(leaf_object, "endpoint-config", endpoint_object_value);
+    json_array_append_value(leaves, leaf_value);
+
+    leaf_value = json_value_init_object();
+    leaf_object = json_value_get_object(leaf_value);
+    json_object_set_string(leaf_object, "endpoint-type", "mqtt");
+    endpoint_object_value = json_value_init_object();
+    endpoint_object = json_value_get_object(endpoint_object_value);
+    json_object_set_string(endpoint_object, "ip", mqtt_broker_host);
+    json_object_set_number(endpoint_object, "port", mqtt_broker_port);
+    json_object_set_number(endpoint_object, "qos", mqtt_qos);
+    char base_topic[100] = DATA_TOPIC_PREFIX;
+    strcat(base_topic, "/");
+    strcat(base_topic, monitor_id);
+    json_object_set_string(endpoint_object, "base-topic", strdup(base_topic));
+    json_object_set_value(leaf_object, "endpoint-config", endpoint_object_value);
+    json_array_append_value(leaves, leaf_value);
+
     json_array_append_value(leaves, leaf_value);
     json_object_set_value(robj, "endpoints", branch);
 

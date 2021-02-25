@@ -33,9 +33,11 @@
 
 // JSON Keys
 #define JSON_KEY_SETUP_ENDPOINT_TYPE "endpoint-type"
+#define JSON_KEY_SETUP_ENDPOINT_CONFIG "endpoint-config"
 #define JSON_KEY_SETUP_IP "ip"
 #define JSON_KEY_SETUP_PORT "port"
 #define JSON_KEY_SETUP_QOS "qos"
+#define JSON_KEY_SETUP_BASE_TOPIC "base-topic"
 
 #define JSON_KEY_CONNECTION_CONF_ID "id"
 #define JSON_KEY_CONNECTION_CONF_TYPE "monitor-agent-type"

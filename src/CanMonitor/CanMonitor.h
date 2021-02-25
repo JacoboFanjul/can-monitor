@@ -7,6 +7,12 @@
 #include "implementation/tables/table_can.h"
 #include "implementation/impl.h"
 
+#define MS_TYPE "monitor-agent"
+// TODO delete test part
+#define MQTT_API_PREFIX "test/adms/v2"
+#define DATA_TOPIC_PREFIX MQTT_API_PREFIX "/" MS_TYPE
+#define DISCOVERY_TOPIC MQTT_API_PREFIX "/discovery"
+
 /* Macro */
 #define ERR_CHECK(x)                                          \
     if (x.code)                                               \

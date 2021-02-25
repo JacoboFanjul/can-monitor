@@ -65,47 +65,64 @@ int update_microservice_configuration(char **values)
     JSON_Value *jval = json_parse_string(*values);
     JSON_Object *jobj = json_value_get_object(jval);
 
-    if (json_object_get_value(jobj, JSON_KEY_SETUP_ENDPOINT_TYPE) != NULL && json_object_get_value(jobj, JSON_KEY_SETUP_IP) != NULL &&
-    json_object_get_value(jobj, JSON_KEY_SETUP_PORT) != NULL && json_object_get_value(jobj, JSON_KEY_SETUP_QOS) != NULL)
+    if (json_object_get_value(jobj, JSON_KEY_SETUP_ENDPOINT_TYPE) != NULL && json_object_get_value(jobj, JSON_KEY_SETUP_ENDPOINT_CONFIG) != NULL)
     {
         char *endpoint_type = strdup(json_object_get_string(jobj, JSON_KEY_SETUP_ENDPOINT_TYPE));
+        JSON_Value *jval_config = json_object_get_value(jobj, JSON_KEY_SETUP_ENDPOINT_CONFIG);
+        JSON_Object *jobj_config = json_value_get_object(jval_config);
 
         if (strcmp(endpoint_type, "http") == 0)
         {
-            extern int rest_server_port;
-            rest_server_port = json_object_get_number(jobj, JSON_KEY_SETUP_PORT);
-
-            extern uint8_t restart_http;
-            restart_http = 1;
-            strcpy(*values, "");
-            return OK;
+            if (json_object_get_value(jobj_config, JSON_KEY_SETUP_IP) != NULL && json_object_get_value(jobj_config, JSON_KEY_SETUP_PORT) != NULL)
+            {
+                extern int rest_server_port;
+                rest_server_port = json_object_get_number(jobj_config, JSON_KEY_SETUP_PORT);
+                strcpy(*values, "");
+                extern uint8_t restart_http;
+                restart_http = 1;
+                return OK;
+            }
+            else
+            {
+                create_error_message(values, "HTTP config is not correct");
+                return ERROR;
+            }
         }
         else if (strcmp(endpoint_type, "mqtt") == 0)
         {
-            extern ms_status status;
-            ms_status old_status = status;
-
-            if(status == running)
+            if (json_object_get_value(jobj_config, JSON_KEY_SETUP_IP) != NULL && json_object_get_value(jobj_config, JSON_KEY_SETUP_PORT) != NULL &&
+            json_object_get_value(jobj_config, JSON_KEY_SETUP_QOS) != NULL && json_object_get_value(jobj_config, JSON_KEY_SETUP_BASE_TOPIC) != NULL) 
             {
-                status = configured;
+                extern ms_status status;
+                ms_status old_status = status;
+
+                if(status == running)
+                {
+                    status = configured;
+                }
+
+                extern char *mqtt_broker_host;
+                extern int mqtt_broker_port;
+                extern int mqtt_qos;
+                mqtt_broker_host = strdup(json_object_get_string(jobj_config, JSON_KEY_SETUP_IP));
+                mqtt_broker_port = json_object_get_number(jobj_config, JSON_KEY_SETUP_PORT);
+                mqtt_qos = json_object_get_number(jobj_config, JSON_KEY_SETUP_QOS);
+
+                extern uint8_t restart_mqtt;
+                restart_mqtt = 1;
+
+                if(old_status == running)
+                {
+                    status = running;
+                }
+                strcpy(*values, "");
+                return OK;
             }
-
-            extern char *mqtt_broker_host;
-            extern int mqtt_broker_port;
-            extern int mqtt_qos;
-            mqtt_broker_host = strdup(json_object_get_string(jobj, JSON_KEY_SETUP_IP));
-            mqtt_broker_port = json_object_get_number(jobj, JSON_KEY_SETUP_PORT);
-            mqtt_qos = json_object_get_number(jobj, JSON_KEY_SETUP_QOS);
-
-            extern uint8_t restart_mqtt;
-            restart_mqtt = 1;
-
-            if(old_status == running)
+            else
             {
-                status = running;
+                create_error_message(values, "MQTT config is not correct");
+                return ERROR;
             }
-            strcpy(*values, "");
-            return OK;
         }
         else
         {
