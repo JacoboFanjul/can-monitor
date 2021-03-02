@@ -17,11 +17,8 @@ RUN git clone https://github.com/eclipse/paho.mqtt.c.git && \
 #    ldconfig
 
 # Set 
-COPY VERSION /adms-build
-COPY LICENSE /adms-build
-COPY Attribution.txt /adms-build
+COPY VERSION LICENSE Attribution.txt build.sh /adms-build/
 COPY src /adms-build/src
-COPY build.sh /adms-build
 WORKDIR /adms-build
 RUN ./build.sh $*
 # ENTRYPOINT ["/bin/sh"]
