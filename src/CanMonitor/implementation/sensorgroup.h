@@ -9,6 +9,9 @@
 #define _SENSORGROUP_H
 
 /* Includes */
+#include <time.h>
+#include <sys/time.h>
+
 #include "../common/parson.h"
 #include "../common/rest-server.h"
 

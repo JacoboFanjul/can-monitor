@@ -29,7 +29,7 @@
 #include <sys/socket.h> 
 #include <netinet/in.h> 
 #include <arpa/inet.h> 
-#include <bits/types/sig_atomic_t.h>
+//#include <bits/types/sig_atomic_t.h>
   
 
 #define ADEPTNESS_PING "/adms/v2/ping"
