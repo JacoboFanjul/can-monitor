@@ -1,27 +1,19 @@
 FROM alpine:3.11 AS builder
 
 # Install required dependencies 
-RUN apk add --update --no-cache build-base wget git gcc cmake make yaml-dev libcurl curl-dev libmicrohttpd-dev util-linux-dev jsoncpp-dev openssl-dev ninja linux-headers musl-dev && mkdir -p /adms-build/build
-
-RUN git clone https://github.com/eclipse/paho.mqtt.c.git && \
+RUN apk add --update --no-cache build-base wget git gcc cmake make yaml-dev libcurl curl-dev libmicrohttpd-dev util-linux-dev jsoncpp-dev openssl-dev ninja linux-headers musl-dev && \
+    mkdir -p /adms-build/build && \
+    git clone https://github.com/eclipse/paho.mqtt.c.git && \
     cd paho.mqtt.c && \
     mkdir build && \
     cd build && \
     cmake -GNinja -DPAHO_WITH_SSL=TRUE -DPAHO_BUILD_DOCUMENTATION=FALSE -DPAHO_BUILD_SAMPLES=TRUE -DPAHO_HIGH_PERFORMANCE=TRUE .. && \
     ninja install && \
     ldconfig /etc/ld.so.conf.d 
-# RUN git clone https://github.com/eclipse/paho.mqtt.c.git && \
-#    cd paho.mqtt.c && \
-#    make && \
-#    make install && \
-#    ldconfig
 
-# Set 
-COPY VERSION LICENSE Attribution.txt build.sh /adms-build/
-COPY src /adms-build/src
 WORKDIR /adms-build
+COPY . .
 RUN ./build.sh $*
-# ENTRYPOINT ["/bin/sh"]
 
 FROM alpine:3.11 
 
@@ -41,5 +33,4 @@ WORKDIR /adeptness/bin/build/release
 EXPOSE 48890
 
 # Run executable parsing the configuration file (this file can be modified when running the docker image)
-#ENTRYPOINT ["/bin/sh"]
 ENTRYPOINT ["./CanMonitor"]
