@@ -29,8 +29,5 @@ COPY conf /adeptness/conf
 # Define the working directory
 WORKDIR /adeptness/bin/build/release
 
-# Expose container port
-EXPOSE 48890
-
 # Run executable parsing the configuration file (this file can be modified when running the docker image)
 ENTRYPOINT ["./CanMonitor"]

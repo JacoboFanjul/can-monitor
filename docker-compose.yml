@@ -18,8 +18,6 @@ services:
     container_name: CAN
     network_mode: "host"
     hostname: can
-    #    depends_on:
-    #      - InternalBroker
     environment:
       - REST_PORT=48891
       - MQTT_BROKER_IP=emq-adeptness.iot.ikerlan.es
@@ -27,3 +25,6 @@ services:
       - MQTT_QOS=0
       - SVC_ID=Adeptness
       - MQTT_USERNAME=adeptness
+#    depends_on:
+#      - InternalBroker
+
