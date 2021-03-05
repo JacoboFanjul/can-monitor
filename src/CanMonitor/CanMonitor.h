@@ -53,9 +53,11 @@ int get_info_from_environment_variables(void);
 
 int get_info_from_config_file(char *config_file);
 
-uint64_t mask_can_frame(struct can_frame *frame, uint32_t init_bit, uint32_t end_bit);
+void mask_can_frame(void *var_addr, struct can_frame *frame, uint32_t init_bit, uint32_t end_bit);
 
-int parse_can_frame(struct can_frame *frame);
+void parse_can_frame(struct can_frame *frame);
+
+void var_cast(char *var_str, void *var_value, char* type);
 
 // TODO Delete
 #if DEV

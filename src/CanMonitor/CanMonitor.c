@@ -9,6 +9,7 @@
 #include <math.h>
 #include <time.h>
 #include <sys/time.h>
+#include <inttypes.h>
 
 #include "CanMonitor.h"
 
@@ -458,7 +459,7 @@ void print_struct()
  *
  * For every sensor in sensorList matching a given CAN frame ID, sets sensor->value
 */
-uint64_t mask_can_frame(struct can_frame *frame, uint32_t init_bit, uint32_t end_bit)
+void mask_can_frame(void *var_addr, struct can_frame *frame, uint32_t init_bit, uint32_t end_bit)
 {
     // ToDo: handle input args exceptions such as init_bit > end_bit
     uint32_t var_length;
@@ -467,10 +468,10 @@ uint64_t mask_can_frame(struct can_frame *frame, uint32_t init_bit, uint32_t end
     uint64_t var_value;
     uint32_t mask_shift;
     var_length = end_bit - init_bit + 1;   // e.g. end_bit = 5, init_bit = 2 => var_length = 4
-    mask = 0x1ULL;                         // 0 ... 00001
+    mask = 0x1;                         // 0 ... 00001
     mask = mask << var_length;                      // 0 ... 10000
     --mask;                                         // 0 ... 01111
-    uni_data = 0x0ULL;                     // 0 ... 00000
+    uni_data = 0;                     // 0 ... 00000
     for (size_t ii = 0; ii < frame->can_dlc; ii++)
     {
         uni_data = (uni_data << 8) | (uint64_t)frame->data[ii];
@@ -479,7 +480,8 @@ uint64_t mask_can_frame(struct can_frame *frame, uint32_t init_bit, uint32_t end
     mask = mask << mask_shift;
     var_value = mask & uni_data;
     var_value = var_value >> mask_shift;
-    return var_value;
+    memcpy(var_addr, (void *)&var_value, sizeof(uint64_t));
+    return;
 }
 
 /**
@@ -487,7 +489,7 @@ uint64_t mask_can_frame(struct can_frame *frame, uint32_t init_bit, uint32_t end
  *
  * For every sensor in sensorList matching a given CAN frame ID, sets sensor->value
 */
-int parse_can_frame(struct can_frame *frame)
+void parse_can_frame(struct can_frame *frame)
 {
     ListSensors *s_listptr;
 
@@ -502,22 +504,89 @@ int parse_can_frame(struct can_frame *frame)
             // TODO Def function that casts value from sensor->type to char
             if (frame->can_id == sensor->can_id)
             {
-                uint64_t yalocambiaras = mask_can_frame(frame, sensor->init_bit, sensor->end_bit);
+                void *var_value;
+                mask_can_frame(var_value, frame, sensor->init_bit, sensor->end_bit);
+                var_cast(sensor->value, var_value, sensor->type);
             }
-            printf("ID: %s", (char*)sensor->id);
-            printf(". Name: %s", sensor->name);
-            printf(". Type: %s", sensor->type);
-            printf(". CanID: %d", sensor->can_id);
-            printf(". Init bit: %d", sensor->init_bit);
-            printf(". End bit: %d", sensor->end_bit);
-            printf(". Sampling_rate: %d", sensor->sampling_rate);
-            printf(". Value: %s", sensor->value);
-            printf(". Timestamp: %ld\n", sensor->timestamp);
-
             s_listptr = s_listptr->next;
         }
     }
-    return 0;
+    return;
+}
+
+/**
+* @brief  Conditional cast
+        *
+        * For a given var_value, cast from var_value to sensor->type and then from sensor->type to string
+*/
+
+void var_cast(char *var_str, void *var_addr, char *type)
+{
+    // ToDo: Define str format for unsigned (%0X? %u?)
+    if (strcmp(type, "Uint8") == 0)
+    {
+        uint8_t *aux_addr = (uint8_t *)var_addr;
+        snprintf(var_str, 4, "%"PRIu8, *aux_addr);
+        return;
+    }
+    else if (strcmp(type, "Uint16") == 0)
+    {
+        uint16_t *aux_addr = (uint16_t *)var_addr;
+        snprintf(var_str, 6, "%"PRIu16, *aux_addr);
+        return;
+    }
+    else if (strcmp(type, "Uint32") == 0)
+    {
+        uint32_t *aux_addr = (uint32_t *)var_addr;
+        snprintf(var_str, 11, "%"PRIu32, *aux_addr);
+        return;
+    }
+    else if (strcmp(type, "Uint64") == 0)
+    {
+        uint64_t *aux_addr = (uint64_t *)var_addr;
+        snprintf(var_str, 21, "%"PRIu64, *aux_addr);
+        return;
+    }
+    else if (strcmp(type, "Int8") == 0)
+    {
+        int8_t *aux_addr = (int8_t *)var_addr;
+        snprintf(var_str, 5, "%"PRId8, *aux_addr);
+        return;
+    }
+    else if (strcmp(type, "Int16") == 0)
+    {
+        int16_t *aux_addr = (int16_t *)var_addr;
+        snprintf(var_str, 7, "%"PRId16, *aux_addr);
+        return;
+    }
+    else if (strcmp(type, "Int32") == 0)
+    {
+        int32_t *aux_addr = (int32_t *)var_addr;
+        snprintf(var_str, 12, "%"PRId32, *aux_addr);
+        return;
+    }
+    else if (strcmp(type, "Int64") == 0)
+    {
+        int64_t *aux_addr = (int64_t *)var_addr;
+        snprintf(var_str, 21, "%"PRId64, *aux_addr);
+        return;
+    }
+    else if (strcmp(type, "Double") == 0)
+    {
+        double_t *aux_addr = (double_t *)var_addr;
+        snprintf(var_str, 34, "%.15f", *aux_addr);
+        return;
+    }
+    else if (strcmp(type, "string") == 0)
+    {
+        var_str = (char *)var_addr;
+        return;
+    }
+    else
+    {
+        printf("Sensor value type not supported\n");
+        return;
+    }
 }
 
 /**
