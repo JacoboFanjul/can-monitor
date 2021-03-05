@@ -10,11 +10,8 @@
 #include <time.h>
 #include <sys/time.h>
 #include <inttypes.h>
-
 #include "CanMonitor.h"
-
 #include "rest_server/rest_server_impl.h"
-
 #include "mqtt/mqtt_payload_helpers.h"
 #include "mqtt/mqtt_utils.h"
 
@@ -31,7 +28,6 @@ uint8_t can_up;
 HashTableSensors *sensors_table;
 HashTableSensorgroups *sensorgroup_table;
 TableCan *can_ids_table;
-
 
 // REST config
 int rest_server_port;
@@ -57,8 +53,7 @@ int bitrate;
  *
  * @param i Signal.
  */
-static void int_handler(int i)
-{
+static void int_handler(int i) {
     status = exit_ms;
 }
 
@@ -69,8 +64,7 @@ static void int_handler(int i)
  *
  * @param i Signal.
  */
-static void usr_handler(int i)
-{
+static void usr_handler(int i) {
     printf("Wake up! Config has been changed\n");
 }
 
@@ -79,8 +73,7 @@ static void usr_handler(int i)
  *
  * Help menu for console.
  */
-static void usage(void)
-{
+static void usage(void) {
     printf("Options: \n");
     printf("   -c, --config         : Use Config file\n");
     printf("   -h, --help           : Show this text\n");
@@ -92,36 +85,26 @@ static void usage(void)
  *
  * Check input arguments
  */
-static bool test_arg(int argc, char *argv[], int *pos, const char *pshort, const char *plong, char **var)
-{
-    if (strcmp(argv[*pos], pshort) == 0 || strcmp(argv[*pos], plong) == 0)
-    {
-        if (*pos < argc - 1)
-        {
+static bool test_arg(int argc, char *argv[], int *pos, const char *pshort, const char *plong, char **var) {
+    if (strcmp(argv[*pos], pshort) == 0 || strcmp(argv[*pos], plong) == 0) {
+        if (*pos < argc - 1) {
             (*pos)++;
             *var = argv[*pos];
             (*pos)++;
             return true;
-        }
-        else
-        {
+        } else {
             printf("Option %s requires an argument\n", argv[*pos]);
             exit(0);
         }
     }
     char *eq = strchr(argv[*pos], '=');
-    if (eq)
-    {
-        if (strncmp(argv[*pos], pshort, eq - argv[*pos]) == 0 || strncmp(argv[*pos], plong, eq - argv[*pos]) == 0)
-        {
-            if (strlen(++eq))
-            {
+    if (eq) {
+        if (strncmp(argv[*pos], pshort, eq - argv[*pos]) == 0 || strncmp(argv[*pos], plong, eq - argv[*pos]) == 0) {
+            if (strlen(++eq)) {
                 *var = eq;
                 (*pos)++;
                 return true;
-            }
-            else
-            {
+            } else {
                 printf("Option %s requires an argument\n", argv[*pos]);
                 exit(0);
             }
@@ -130,12 +113,10 @@ static bool test_arg(int argc, char *argv[], int *pos, const char *pshort, const
     return false;
 }
 
-int get_info_from_config_file(char *config_file)
-{
+int get_info_from_config_file(char *config_file) {
     printf("-- Read config file: %s\n", config_file);
 
-    if (access(config_file, F_OK) == -1)
-    {
+    if (access(config_file, F_OK) == -1) {
         printf("ERR: Config file does not exist\n");
         return 2;
     }
@@ -168,10 +149,10 @@ int get_info_from_config_file(char *config_file)
  *
  * Get info about the service identification & connectivity params from the environment settings
  */
-int get_info_from_environment_variables(){
+int get_info_from_environment_variables() {
     printf("-- Read parameters from environment variables:\n");
-    const char* s = getenv("REST_PORT");
-    if(s != NULL){
+    const char *s = getenv("REST_PORT");
+    if (s != NULL) {
         rest_server_port = atoi(s);
         printf("\t- REST server port: %d\n", rest_server_port);
     } else {
@@ -179,32 +160,32 @@ int get_info_from_environment_variables(){
         return -1;
     }
     s = getenv("MQTT_BROKER_IP");
-    if(s != NULL){
-        mqtt_broker_host = strdup(s); 
+    if (s != NULL) {
+        mqtt_broker_host = strdup(s);
         printf("\t- MQTT broker host: %s\n", mqtt_broker_host);
     } else {
         printf("ERR: There is no MQTT broker host defined in the environment.\n");
         return -1;
     }
     s = getenv("MQTT_BROKER_PORT");
-    if(s != NULL){
-        mqtt_broker_port = atoi(s); 
+    if (s != NULL) {
+        mqtt_broker_port = atoi(s);
         printf("\t- MQTT broker port: %d\n", mqtt_broker_port);
     } else {
         printf("ERR: There is no MQTT port defined in the environment.\n");
         return -1;
     }
     s = getenv("MQTT_QOS");
-    if(s != NULL){
-        mqtt_qos = atoi(s); 
+    if (s != NULL) {
+        mqtt_qos = atoi(s);
         printf("\t- MQTT QoS: %d\n", mqtt_qos);
     } else {
         printf("ERR: There is no MQTT QoS defined in the environment.\n");
         return -1;
     }
     s = getenv("SVC_ID");
-    if(s != NULL){
-        monitor_id = strdup(s); 
+    if (s != NULL) {
+        monitor_id = strdup(s);
         printf("\t- Service Id: %s\n", monitor_id);
     } else {
         printf("ERR: There is no Service Id defined in the environment.\n");
@@ -212,8 +193,8 @@ int get_info_from_environment_variables(){
     }
     //s = getenv("MQTT_USERNAME");
     s = "adeptness";
-    if(s != NULL){
-        mqtt_username = strdup(s); 
+    if (s != NULL) {
+        mqtt_username = strdup(s);
         printf("\t- MQTT username: %s\n", mqtt_username);
     } else {
         printf("ERR: There is no MQTT username defined in the environment.\n");
@@ -459,8 +440,7 @@ void print_struct()
  *
  * For every sensor in sensorList matching a given CAN frame ID, sets sensor->value
 */
-void mask_can_frame(void *var_addr, struct can_frame *frame, uint32_t init_bit, uint32_t end_bit)
-{
+void mask_can_frame(void *var_addr, struct can_frame *frame, uint32_t init_bit, uint32_t end_bit) {
     // ToDo: handle input args exceptions such as init_bit > end_bit
     uint32_t var_length;
     uint64_t mask;
@@ -472,15 +452,14 @@ void mask_can_frame(void *var_addr, struct can_frame *frame, uint32_t init_bit, 
     mask = mask << var_length;                      // 0 ... 10000
     --mask;                                         // 0 ... 01111
     uni_data = 0;                     // 0 ... 00000
-    for (size_t ii = 0; ii < frame->can_dlc; ii++)
-    {
-        uni_data = (uni_data << 8) | (uint64_t)frame->data[ii];
+    for (size_t ii = 0; ii < frame->can_dlc; ii++) {
+        uni_data = (uni_data << 8) | (uint64_t) frame->data[ii];
     }
-    mask_shift = 8*((uint32_t)frame->can_dlc) - var_length - init_bit;
+    mask_shift = 8 * ((uint32_t) frame->can_dlc) - var_length - init_bit;
     mask = mask << mask_shift;
     var_value = mask & uni_data;
     var_value = var_value >> mask_shift;
-    memcpy(var_addr, (void *)&var_value, sizeof(uint64_t));
+    memcpy(var_addr, (void *) &var_value, sizeof(uint64_t));
     return;
 }
 
@@ -489,24 +468,20 @@ void mask_can_frame(void *var_addr, struct can_frame *frame, uint32_t init_bit, 
  *
  * For every sensor in sensorList matching a given CAN frame ID, sets sensor->value
 */
-void parse_can_frame(struct can_frame *frame)
-{
+void parse_can_frame(struct can_frame *frame) {
     ListSensors *s_listptr;
 
-    for (unsigned int i = 0; i < sensors_table->size; ++i)
-    {
+    for (unsigned int i = 0; i < sensors_table->size; ++i) {
         s_listptr = sensors_table->array[i];
 
-        while (s_listptr != NULL)
-        {
+        while (s_listptr != NULL) {
             sensor *sensor = malloc(sizeof *sensor);
             sensor = s_listptr->sensor;
             // TODO Def function that casts value from sensor->type to char
-            if (frame->can_id == sensor->can_id)
-            {
-                void *var_value;
-                mask_can_frame(var_value, frame, sensor->init_bit, sensor->end_bit);
-                var_cast(sensor->value, var_value, sensor->type);
+            if (frame->can_id == sensor->can_id) {
+                uint64_t var_value;
+                mask_can_frame((void *) &var_value, frame, sensor->init_bit, sensor->end_bit);
+                var_cast(sensor->value, (void *) &var_value, sensor->type);
             }
             s_listptr = s_listptr->next;
         }
@@ -519,71 +494,46 @@ void parse_can_frame(struct can_frame *frame)
         *
         * For a given var_value, cast from var_value to sensor->type and then from sensor->type to string
 */
-
-void var_cast(char *var_str, void *var_addr, char *type)
-{
-    // ToDo: Define str format for unsigned (%0X? %u?)
-    if (strcmp(type, "Uint8") == 0)
-    {
-        uint8_t *aux_addr = (uint8_t *)var_addr;
-        snprintf(var_str, 4, "%"PRIu8, *aux_addr);
+void var_cast(char *var_str, void *var_addr, char *type) {
+    if (strcmp(type, "Uint8") == 0) {
+        snprintf(var_str, 4, "%"
+        PRIu8, *(uint8_t *) var_addr);
         return;
-    }
-    else if (strcmp(type, "Uint16") == 0)
-    {
-        uint16_t *aux_addr = (uint16_t *)var_addr;
-        snprintf(var_str, 6, "%"PRIu16, *aux_addr);
+    } else if (strcmp(type, "Uint16") == 0) {
+        snprintf(var_str, 6, "%"
+        PRIu16, *(uint16_t *) var_addr);
         return;
-    }
-    else if (strcmp(type, "Uint32") == 0)
-    {
-        uint32_t *aux_addr = (uint32_t *)var_addr;
-        snprintf(var_str, 11, "%"PRIu32, *aux_addr);
+    } else if (strcmp(type, "Uint32") == 0) {
+        snprintf(var_str, 11, "%"
+        PRIu32, *(uint32_t *) var_addr);
         return;
-    }
-    else if (strcmp(type, "Uint64") == 0)
-    {
-        uint64_t *aux_addr = (uint64_t *)var_addr;
-        snprintf(var_str, 21, "%"PRIu64, *aux_addr);
+    } else if (strcmp(type, "Uint64") == 0) {
+        snprintf(var_str, 21, "%"
+        PRIu64, *(uint64_t *) var_addr);
         return;
-    }
-    else if (strcmp(type, "Int8") == 0)
-    {
-        int8_t *aux_addr = (int8_t *)var_addr;
-        snprintf(var_str, 5, "%"PRId8, *aux_addr);
+    } else if (strcmp(type, "Int8") == 0) {
+        snprintf(var_str, 5, "%"
+        PRId8, *(int8_t *) var_addr);
         return;
-    }
-    else if (strcmp(type, "Int16") == 0)
-    {
-        int16_t *aux_addr = (int16_t *)var_addr;
-        snprintf(var_str, 7, "%"PRId16, *aux_addr);
+    } else if (strcmp(type, "Int16") == 0) {
+        snprintf(var_str, 7, "%"
+        PRId16, *(int16_t *) var_addr);
         return;
-    }
-    else if (strcmp(type, "Int32") == 0)
-    {
-        int32_t *aux_addr = (int32_t *)var_addr;
-        snprintf(var_str, 12, "%"PRId32, *aux_addr);
+    } else if (strcmp(type, "Int32") == 0) {
+        snprintf(var_str, 12, "%"
+        PRId32, *(int32_t *) var_addr);
         return;
-    }
-    else if (strcmp(type, "Int64") == 0)
-    {
-        int64_t *aux_addr = (int64_t *)var_addr;
-        snprintf(var_str, 21, "%"PRId64, *aux_addr);
+    } else if (strcmp(type, "Int64") == 0) {
+        snprintf(var_str, 21, "%"
+        PRId64, *(int64_t *) var_addr);
         return;
-    }
-    else if (strcmp(type, "Double") == 0)
-    {
-        double_t *aux_addr = (double_t *)var_addr;
-        snprintf(var_str, 34, "%.15f", *aux_addr);
+    } else if (strcmp(type, "Double") == 0) {
+        snprintf(var_str, 34, "%.15f", *(double_t *) var_addr);
         return;
-    }
-    else if (strcmp(type, "string") == 0)
-    {
-        var_str = (char *)var_addr;
+    } else if (strcmp(type, "string") == 0) {
+        snprintf(var_str, 9, "%s", (char *) var_addr);
         return;
-    }
-    else
-    {
+    } else {
         printf("Sensor value type not supported\n");
         return;
     }
@@ -597,8 +547,7 @@ void var_cast(char *var_str, void *var_addr, char *type)
  * @param argc Number of arguments.
  * @param argv Arguments.
  */
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
     /* Error var */
     adeptness_error e;
     e.code = 0;
@@ -614,21 +563,17 @@ int main(int argc, char *argv[])
 
     /* Check input parameters */
     int n = 1;
-    while (n < argc)
-    {
-        if (strcmp(argv[n], "-h") == 0 || strcmp(argv[n], "--help") == 0)
-        {
+    while (n < argc) {
+        if (strcmp(argv[n], "-h") == 0 || strcmp(argv[n], "--help") == 0) {
             usage();
             return 0;
         }
 
-        if (test_arg(argc, argv, &n, "-n", "--name", &st.svcname))
-        {
+        if (test_arg(argc, argv, &n, "-n", "--name", &st.svcname)) {
             continue;
         }
 
-        if (test_arg(argc, argv, &n, "-c", "--config", &config_file))
-        {
+        if (test_arg(argc, argv, &n, "-c", "--config", &config_file)) {
             printf("Configuration file: %s\n", config_file);
             continue;
         }
@@ -638,17 +583,14 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    if (config_file == NULL)
-    {
-        if(get_info_from_environment_variables() < 0) 
-        {
+    if (config_file == NULL) {
+        if (get_info_from_environment_variables() < 0) {
             printf("ERR: The configuration can not be recovered from a file or from environment variables\n");
             return 0;
         }
 
     } else {
-        if (get_info_from_config_file(config_file) != 0)
-        {
+        if (get_info_from_config_file(config_file) != 0) {
             printf("ERR: Error parsing the config_file\n");
             return 0;
         }
@@ -656,13 +598,13 @@ int main(int argc, char *argv[])
 
     /* Device Callbacks */
     adeptness_callbacks adeptnesscbs =
-        {
-            myAdeptnessService_get_handler,     /* Get */
-            myAdeptnessService_put_handler,     /* Put */
-            myAdeptnessService_post_handler,    /* Post */
-            myAdeptnessService_delete_handler,  /* Delete */
-            myAdeptnessService_stop             /* Stop */
-        };
+            {
+                    myAdeptnessService_get_handler,     /* Get */
+                    myAdeptnessService_put_handler,     /* Put */
+                    myAdeptnessService_post_handler,    /* Post */
+                    myAdeptnessService_delete_handler,  /* Delete */
+                    myAdeptnessService_stop             /* Stop */
+            };
 
     /* Initalise a new adeptness service */
     adeptness_service *service = adeptness_service_new(st.svcname, "1.0", &st, adeptnesscbs, rest_server_port, &e);
@@ -692,15 +634,15 @@ int main(int argc, char *argv[])
     addr.can_family = AF_CAN;
     addr.can_ifindex = if_nametoindex(CAN_INTERFACE);
 
-    bind(sockfd, (struct sockaddr *)&addr, sizeof(addr));
+    bind(sockfd, (struct sockaddr *) &addr, sizeof(addr));
 
     // Set non blocking
     fcntl(sockfd, F_SETFL, O_NONBLOCK);
 
-    char* discovery_payload = strdup(create_discovery_payload());
+    char *discovery_payload = strdup(create_discovery_payload());
     publish(DISCOVERY_TOPIC, discovery_payload);
-    struct timeval current_time;  
-    gettimeofday (&current_time, NULL);
+    struct timeval current_time;
+    gettimeofday(&current_time, NULL);
     uint64_t current_ms = current_time.tv_sec * 1000 + current_time.tv_usec / 1000;
     printf("[%ld] | Publish on %s: %s\n", current_ms, DISCOVERY_TOPIC, discovery_payload);
 
@@ -709,32 +651,30 @@ int main(int argc, char *argv[])
     can_ids_table = table_can_create(CAN_IDS_TABLE_SIZE);
 
     // TODO delete, only for dev
-    #if DEV
+#if DEV
     create_dummy_struct();
     print_struct();
     status = configured;
-    #endif
+#endif
 
-    while (status != exit_ms)
-    {
-        if (restart_mqtt != 0)
-        {
+    while (status != exit_ms) {
+        if (restart_mqtt != 0) {
             clean_mqtt();
             initialize_mqtt(mqtt_broker_host, mqtt_broker_port, mqtt_qos, mqtt_username, monitor_id);
 
             discovery_payload = strdup(create_discovery_payload());
             publish(DISCOVERY_TOPIC, discovery_payload);
-            gettimeofday (&current_time, NULL);
+            gettimeofday(&current_time, NULL);
             current_ms = current_time.tv_sec * 1000 + current_time.tv_usec / 1000;
             printf("[%ld] | Publish on %s: %s\n", current_ms, DISCOVERY_TOPIC, discovery_payload);
             restart_mqtt = 0;
             printf("-- MQTT connection reconfigured\n");
         }
 
-        if (restart_http != 0)
-        {
+        if (restart_http != 0) {
             adeptness_service_stop(service, true, &e);
-            adeptness_service *service = adeptness_service_new(st.svcname, "1.0", &st, adeptnesscbs, rest_server_port, &e);
+            adeptness_service *service = adeptness_service_new(st.svcname, "1.0", &st, adeptnesscbs, rest_server_port,
+                                                               &e);
             ERR_CHECK(e);
             adeptness_service_start(service, &e);
             ERR_CHECK(e);
@@ -743,68 +683,49 @@ int main(int argc, char *argv[])
         }
 
         // TODO delete, only for dev
-        #if AUTOSTART
+#if AUTOSTART
         status = running;
-        #endif
+#endif
 
-        if (status == configured || status == running)
-        {
-            if (EXISTS_CAN != 0)
-            {
+        if (status == configured || status == running) {
+            if (EXISTS_CAN != 0) {
                 // Init CAN frame identifier and Extended/Standard flag:
                 struct can_frame frame;
                 int ExtFlag;
-                uint32_t can_id;
-
                 ExtFlag = can_read(sockfd, &frame);
 
                 struct timeval tv;
                 gettimeofday(&tv, NULL);
 
-                //if ((ExtFlag != 0) && (frame.can_id == 0x00040030))
-                if (ExtFlag != 0)
+                if (ExtFlag == 2) // Extended Frame Format
                 {
-                    if (ExtFlag == 2) // Extended Frame Format
-                    {
-                        can_id = frame.can_id & CAN_EFF_MASK;
-                    }
-                    else // Standard Frame Format
-                    {
-                        can_id = frame.can_id & CAN_SFF_MASK;
-                    }
-                    if (can_id == 0x00040030)
-                    {
-                        printf("CAN ID: %08X\n", can_id);
-                        double lift01Speed = ((double) rand()*(2.0-0.5)/(double)RAND_MAX-0.5);
-                        int Lift01FloorLocation = frame.data[2] & 0x3F;
-                        printf("Lift at floor %d\n", Lift01FloorLocation);
-                    }
+                    printf("Extended frame format to be implemented in future release\n");
+                } else if (ExtFlag == 1)// Standard Frame Format
+                {
+                    parse_can_frame(&frame);
                 }
             }
         }
-            
-        if (status == running)
-        {
+
+        if (status == running) {
             ListSensorgroups *listptr;
-            for (unsigned int i = 0; i < sensorgroup_table->size; i++)
-            {
+            for (unsigned int i = 0; i < sensorgroup_table->size; i++) {
                 listptr = sensorgroup_table->array[i];
 
-                while (listptr != NULL) 
-                {
+                while (listptr != NULL) {
                     sensorgroup *sg = malloc(sizeof(sensorgroup));
                     sg = listptr->sensorgroup;
- 
+
                     gettimeofday(&current_time, NULL);
                     current_ms = current_time.tv_sec * 1000 + current_time.tv_usec / 1000;
-                    uint64_t last_published_ms = sg->last_publish_time.tv_sec * 1000 + sg->last_publish_time.tv_usec / 1000;
-                    if (current_ms - last_published_ms >= sg->publish_rate)
-                    {
+                    uint64_t last_published_ms =
+                            sg->last_publish_time.tv_sec * 1000 + sg->last_publish_time.tv_usec / 1000;
+                    if (current_ms - last_published_ms >= sg->publish_rate) {
                         char mqtt_data_topic[200];
                         sprintf(mqtt_data_topic, "%s/%s/%s", DATA_TOPIC_PREFIX, monitor_id, sg->id);
 
                         const char *payload = create_data_payload(sg);
-                        
+
                         publish(mqtt_data_topic, strdup(payload));
                         printf("[%ld] | Publish on %s: %s\n", current_ms, mqtt_data_topic, payload);
                         sg->last_publish_time.tv_sec = current_time.tv_sec;
@@ -816,7 +737,7 @@ int main(int argc, char *argv[])
             }
         }
         // TODO find the correct number for sleep
-        sleep(1);
+        usleep(10);
     }
 
     hts_free(sensors_table);
