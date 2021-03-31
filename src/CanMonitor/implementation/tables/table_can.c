@@ -1,4 +1,7 @@
+#include "inttypes.h"
 #include "table_can.h"
+#include "hashtable_common.h"
+#include "../../CanMonitor.h"
 
 /*
  * table_can_create() - If the size is a positive integer, allocate the requisite
@@ -61,7 +64,9 @@ int table_can_put(TableCan *table_can, uint32_t pos, char *value)
         return 1;
     }
 
-    node->pos = pos;
+    char* canid_pos;
+    snprintf(canid_pos, 11, "%"PRIu32, pos);
+    node->pos = hash(strdup(canid_pos), CAN_IDS_TABLE_SIZE);
     node->sensor_id = strdup(value);
 
     node_handler_can(table_can, node);
@@ -82,7 +87,6 @@ int table_can_put(TableCan *table_can, uint32_t pos, char *value)
 void node_handler_can(TableCan *table_can, ListSensorIds *node)
 {
     ListSensorIds *tmp = table_can->array[node->pos];
-
     if (table_can->array[node->pos] != NULL)
     {
         tmp = table_can->array[node->pos];
@@ -122,7 +126,10 @@ char * table_can_delete(TableCan *table_can, uint32_t pos, char * sensor_id)
     {
         return NULL;
     }
-    sensor_ids = table_can->array[pos];
+
+    char* canid_pos;
+    snprintf(canid_pos, 11, "%"PRIu32, pos);
+    sensor_ids = table_can->array[hash(canid_pos, 5)];
     
     ListSensorIds *tmp = sensor_ids;
     ListSensorIds *prev = NULL;

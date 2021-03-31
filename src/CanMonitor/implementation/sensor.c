@@ -46,9 +46,10 @@ int create_sensors_configuration(char **values)
         JSON_Array *connectionSettings = json_object_get_array(jobj, JSON_KEY_SENSOR_CONF_SETTINGS);
         size_t settingsCount = json_array_get_count(connectionSettings);
 
-        int32_t can_id = -1;
-        int32_t init_bit = -1;
-        int32_t end_bit = -1;
+        uint32_t can_id = 0;
+        uint32_t init_bit = 0;
+        uint32_t end_bit = 0;
+        uint8_t flag = 0;
 
         if (settingsCount == 3)
         {
@@ -64,19 +65,22 @@ int create_sensors_configuration(char **values)
                     {
                         const char *can_id_str = json_object_get_string(settingObject, JSON_KEY_SENSOR_CONF_VALUE);
                         // TODO find more robust method
-                        can_id = atoi(can_id_str);
+                        sscanf(can_id_str, "%"SCNu32, &can_id);
+                        ++flag;
                     }
                     else if (strcmp(key, "init-bit") == 0)
                     {
                         const char *init_bit_str = json_object_get_string(settingObject, JSON_KEY_SENSOR_CONF_VALUE);
                         // TODO find more robust method
-                        init_bit = atoi(init_bit_str);
+                        sscanf(init_bit_str, "%"SCNu32, &init_bit);
+                        ++flag;
                     }
                     else if (strcmp(key, "end-bit") == 0)
                     {
                         const char *end_bit_str = json_object_get_string(settingObject, JSON_KEY_SENSOR_CONF_VALUE);
                         // TODO find more robust method
-                        end_bit = atoi(end_bit_str);
+                        sscanf(end_bit_str, "%"SCNu32, &end_bit);
+                        ++flag;
                     }
                     else
                     {
@@ -90,7 +94,7 @@ int create_sensors_configuration(char **values)
                     return ERROR;
                 }
             }
-            if (can_id == -1 || init_bit == -1 || end_bit == -1)
+            if (flag != 3)
             {
                 create_error_message(values, "The sensor information is not valid");
                 return ERROR;
@@ -116,7 +120,7 @@ int create_sensors_configuration(char **values)
         sens->value = "";
         sens->timestamp = 0;
         hts_put(sensors_table, sens->id, sens);
-        table_can_put(can_ids_table, sens->can_id, strdup(sens->id));
+        //table_can_put(can_ids_table, sens->can_id, strdup(sens->id));
     }
     else
     {

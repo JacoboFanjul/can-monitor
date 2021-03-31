@@ -23,9 +23,13 @@
     }
 
 // Aux for dev only:
-#define EXISTS_CAN 0
+#define EXISTS_CAN 1
 #define DEV 0
 #define AUTOSTART 0
+
+#define SENSORS_TABLE_SIZE 2
+#define SENSORGROUPS_TABLE_SIZE 3
+#define CAN_IDS_TABLE_SIZE 5
 
 extern ms_status status;
 

@@ -15,10 +15,6 @@
 #include "mqtt/mqtt_payload_helpers.h"
 #include "mqtt/mqtt_utils.h"
 
-#define SENSORS_TABLE_SIZE 2
-#define SENSORGROUPS_TABLE_SIZE 3
-#define CAN_IDS_TABLE_SIZE 5
-
 /* Global vars */
 ms_status status;
 uint8_t restart_mqtt;
@@ -219,7 +215,7 @@ void print_sensor(sensor *sensor)
     printf("\tSampling rate: %d\n", sensor->sampling_rate);
     
     printf("\tValue: %s\n", sensor->value);
-    printf("\tTimestamp: %ld\n", sensor->timestamp);
+    printf("\tTimestamp: %"PRIu64"\n", sensor->timestamp);
 }
 
 void print_sensorgroup(sensorgroup *sensorgroup)
@@ -227,7 +223,7 @@ void print_sensorgroup(sensorgroup *sensorgroup)
     printf("Printing new sensorgroup\n");
     printf("\tSensor ID: %s\n", sensorgroup->id);
     printf("\tPublish_rate: %d\n", sensorgroup->publish_rate);
-    printf("\tLast published: %ld\n", sensorgroup->last_publish_time.tv_sec * 1000000 + sensorgroup->last_publish_time.tv_usec);
+    printf("\tLast published: %"PRIu64"\n", sensorgroup->last_publish_time.tv_sec * 1000000 + sensorgroup->last_publish_time.tv_usec);
     printf("\tSensorlist:\n");
     for (size_t i = 0; i < sensorgroup->sensorcount; i++)
     {
@@ -355,7 +351,7 @@ void print_sensors_table()
             printf(". End bit: %d", sensor->end_bit);
             printf(". Sampling_rate: %d", sensor->sampling_rate);
             printf(". Value: %s", sensor->value);
-            printf(". Timestamp: %ld\n", sensor->timestamp);
+            printf(". Timestamp: %"PRIu64"\n", sensor->timestamp);
 
             s_listptr = s_listptr->next;
             printf("\t--------\n");
@@ -644,7 +640,7 @@ int main(int argc, char *argv[]) {
     struct timeval current_time;
     gettimeofday(&current_time, NULL);
     uint64_t current_ms = current_time.tv_sec * 1000 + current_time.tv_usec / 1000;
-    printf("[%ld] | Publish on %s: %s\n", current_ms, DISCOVERY_TOPIC, discovery_payload);
+    printf("[%"PRIu64"] | Publish on %s: %s\n", current_ms, DISCOVERY_TOPIC, discovery_payload);
 
     sensors_table = hts_create(SENSORS_TABLE_SIZE);
     sensorgroup_table = htsg_create(SENSORGROUPS_TABLE_SIZE);
@@ -666,7 +662,7 @@ int main(int argc, char *argv[]) {
             publish(DISCOVERY_TOPIC, discovery_payload);
             gettimeofday(&current_time, NULL);
             current_ms = current_time.tv_sec * 1000 + current_time.tv_usec / 1000;
-            printf("[%ld] | Publish on %s: %s\n", current_ms, DISCOVERY_TOPIC, discovery_payload);
+            printf("[%"PRIu64"] | Publish on %s: %s\n", current_ms, DISCOVERY_TOPIC, discovery_payload);
             restart_mqtt = 0;
             printf("-- MQTT connection reconfigured\n");
         }
@@ -727,7 +723,7 @@ int main(int argc, char *argv[]) {
                         const char *payload = create_data_payload(sg);
 
                         publish(mqtt_data_topic, strdup(payload));
-                        printf("[%ld] | Publish on %s: %s\n", current_ms, mqtt_data_topic, payload);
+                        printf("[%"PRIu64"] | Publish on %s: %s\n", current_ms, mqtt_data_topic, payload);
                         sg->last_publish_time.tv_sec = current_time.tv_sec;
                         sg->last_publish_time.tv_usec = current_time.tv_usec;
 
