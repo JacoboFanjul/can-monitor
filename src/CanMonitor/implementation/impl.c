@@ -264,6 +264,7 @@ int update_connection_configuration(char **values)
         }
 
         char command[80];
+        // ToDo: snprintf allows to limit buffer size. sprintf for a system() command is candy for attackers
         sprintf(command, "sudo ip link set %s up type can bitrate %d loopback off", canport, bitrate);
         // TODO execute command to start the CAN
         printf("%s\n", command);

@@ -228,6 +228,7 @@ static int adeptness_specific_handler(void *ctx, char *url, adeptness_http_metho
             printf("Payload did not parse as JSON \n");
             return MHD_HTTP_BAD_REQUEST;
         }
+        json_value_free(jval);
 
         result = strdup(upload_data);
 
@@ -270,6 +271,7 @@ static int adeptness_specific_handler(void *ctx, char *url, adeptness_http_metho
             printf("Payload did not parse as JSON \n");
             return MHD_HTTP_BAD_REQUEST;
         }
+        json_value_free(jval);
 
         result = strdup(upload_data);
 

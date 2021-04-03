@@ -593,15 +593,18 @@ int main(int argc, char *argv[]) {
     ERR_CHECK(e);
     printf("-- Device service started\n");
 
-    initialize_mqtt(mqtt_broker_host, mqtt_broker_port, mqtt_qos, mqtt_username, monitor_id);
-
     signal(SIGINT, int_handler);
     signal(SIGUSR1, usr_handler);
     status = unconfigured;
     restart_http = 0;
-    restart_mqtt = 0;
     can_up = 0;
 
+    canport = "can0";
+    bitrate = 125000;
+    char *can_ifup_cmd = strdup("ip link set can0 up type can bitrate 125000 loopback off");
+    snprintf(can_ifup_cmd, 57, "ip link set %s up type can bitrate %d loopback off", canport, bitrate);
+    int can_init_success = system(can_ifup_cmd);
+    free(can_ifup_cmd);
 
     // ToDo: Wrap CAN init, add OS-level CAN ifup
     int sockfd;
@@ -616,6 +619,7 @@ int main(int argc, char *argv[]) {
     // Set non blocking
     fcntl(sockfd, F_SETFL, O_NONBLOCK);
 
+    initialize_mqtt(mqtt_broker_host, mqtt_broker_port, mqtt_qos, mqtt_username, monitor_id);
     char *discovery_payload = create_discovery_payload();
     publish(DISCOVERY_TOPIC, discovery_payload);
     struct timeval current_time;
@@ -643,8 +647,7 @@ int main(int argc, char *argv[]) {
             gettimeofday(&current_time, NULL);
             current_ms = current_time.tv_sec * 1000 + current_time.tv_usec / 1000;
             printf("[%"PRIu64"] | Publish on %s: %s\n", current_ms, DISCOVERY_TOPIC, discovery_payload);
-            restart_mqtt = 0;
-            printf("-- MQTT connection reconfigured\n");
+            printf("-- MQTT connection configured\n");
         }
 
         if (restart_http != 0) {
@@ -665,21 +668,18 @@ int main(int argc, char *argv[]) {
 
         if (status == configured || status == running) {
             if (EXISTS_CAN != 0) {
-                // Init CAN frame identifier and Extended/Standard flag:
                 struct can_frame frame;
                 int ExtFlag = can_read(sockfd, &frame);
 
                 gettimeofday(&current_time, NULL);
 
-                if (ExtFlag == 2) // Extended Frame Format
+                if (ExtFlag == 2)
                 {
                     frame.can_id = frame.can_id & CAN_EFF_MASK;
-                    printf("id=0x%08X=%u\n", frame.can_id, frame.can_id);
                     parse_can_frame(&frame, current_time.tv_sec);
-                } else if (ExtFlag == 1)// Standard Frame Format
+                } else if (ExtFlag == 1)
                 {
                     frame.can_id = frame.can_id & CAN_SFF_MASK;
-                    printf("id=0x%08X=%u\n", frame.can_id, frame.can_id);
                     parse_can_frame(&frame, current_time.tv_sec);
                 }
             }

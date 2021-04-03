@@ -4,8 +4,20 @@
 #include <string.h>
 
 extern int mqtt_qos;
+extern uint8_t restart_mqtt;
 
 static MQTTClient mqtt_client;
+
+void connlost(void *context, char *cause)
+{
+    printf("\nConnection lost\n");
+    printf("     cause: %s\n", cause);
+
+    // Unplug broken connection
+    MQTTClient_disconnect(mqtt_client, 1000);
+    // Set flag and wake main process
+    restart_mqtt = 1;
+}
 
 int initialize_mqtt(char *mqttBrokerHost, int mqttBrokerPort, int mqttQoS, char *mqttUsername, char *clientIdentifier) {
     printf("-- Initialize MQTT:\n");
@@ -24,7 +36,7 @@ int initialize_mqtt(char *mqttBrokerHost, int mqttBrokerPort, int mqttQoS, char 
     connOpts.reliable = 0;
     connOpts.username = mqttUsername;
 
-    MQTTClient_setCallbacks(mqtt_client, NULL, NULL, NULL, NULL);
+    MQTTClient_setCallbacks(mqtt_client, NULL, connlost, NULL, NULL);
     printf("-- MQTT client initialized\n");
     mqtt_qos = mqttQoS;
     int rc;
@@ -33,6 +45,7 @@ int initialize_mqtt(char *mqttBrokerHost, int mqttBrokerPort, int mqttQoS, char 
         return -1;
     }
     printf("-- MQTT client connected to broker\n");
+    restart_mqtt = 0;
     return 0;
 }
 
