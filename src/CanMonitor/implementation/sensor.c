@@ -11,11 +11,9 @@
 
 #include "../CanMonitor.h"
 #include "../rest_server/rest_server_impl.h"
-#include "tables/table_can.h"
 
 extern ms_status status;
 extern HashTableSensors *sensors_table;
-extern TableCan *can_ids_table;
 
 /* Functions */
 int create_sensors_configuration(char **values)
@@ -120,7 +118,6 @@ int create_sensors_configuration(char **values)
         sens->value = "";
         sens->timestamp = 0;
         hts_put(sensors_table, sens->id, sens);
-        //table_can_put(can_ids_table, sens->can_id, strdup(sens->id));
     }
     else
     {
@@ -172,7 +169,6 @@ int delete_sensors_configuration(char **values, query_pairs *queries)
             sensor *sens = hts_delete(sensors_table, id);
             if (sens != NULL)
             {
-                table_can_delete(can_ids_table, sens->can_id, strdup(sens->id));
                 printf("\t- Sensor deleted\n");
             }
             else
@@ -260,22 +256,22 @@ int read_sensors_configuration(char **readings)
             JSON_Value *settings_value = json_value_init_object();
             JSON_Object *settings_object = json_value_get_object(settings_value);
             json_object_set_string(settings_object, JSON_KEY_SENSOR_CONF_KEY, "can-id");
-            char value[20];
-            sprintf(value, "%d", sensor->can_id);
+            char value[11];
+            snprintf(value, 11, "%"PRIu32, sensor->can_id);
             json_object_set_string(settings_object, JSON_KEY_SENSOR_CONF_VALUE, value);
             json_array_append_value(settings_array_object, settings_value);
 
             settings_value = json_value_init_object();
             settings_object = json_value_get_object(settings_value);
             json_object_set_string(settings_object, JSON_KEY_SENSOR_CONF_KEY, "init-bit");
-            sprintf(value, "%d", sensor->init_bit);
+            snprintf(value, 11, "%"PRIu32, sensor->init_bit);
             json_object_set_string(settings_object, JSON_KEY_SENSOR_CONF_VALUE, value);
             json_array_append_value(settings_array_object, settings_value);
 
             settings_value = json_value_init_object();
             settings_object = json_value_get_object(settings_value);
             json_object_set_string(settings_object, JSON_KEY_SENSOR_CONF_KEY, "end-bit");
-            sprintf(value, "%d", sensor->end_bit);
+            snprintf(value, 11, "%"PRIu32, sensor->end_bit);
             json_object_set_string(settings_object, JSON_KEY_SENSOR_CONF_VALUE, value);
             json_array_append_value(settings_array_object, settings_value);
             
@@ -287,7 +283,7 @@ int read_sensors_configuration(char **readings)
         }
     }
 
-    *readings = malloc(strlen(json_serialize_to_string(general_branch)) * sizeof(char));
+    *readings = malloc((strlen(json_serialize_to_string(general_branch)) * sizeof(char)) + 1);
     strcpy(*readings, json_serialize_to_string(general_branch));
 
     printf("\t- Finished reading sensor configuration\n");

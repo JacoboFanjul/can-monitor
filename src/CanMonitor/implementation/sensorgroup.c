@@ -11,12 +11,10 @@
 
 #include "../CanMonitor.h"
 #include "../rest_server/rest_server_impl.h"
-#include "tables/table_can.h"
 
 extern ms_status status;
 extern HashTableSensors *sensors_table;
 extern HashTableSensorgroups *sensorgroup_table;
-extern TableCan *can_ids_table;
     
 
 /* Functions */
@@ -63,7 +61,6 @@ int create_sensorgroups_subscription(char **values)
                 if (sens != NULL)
                 {
                     hts_delete(sensors_table, sensor_id);
-                    table_can_delete(can_ids_table, sens->can_id, strdup(sens->id));
                     printf("\t- Sensor %s deleted\n", sensor_id);
                 }
                 
@@ -141,7 +138,6 @@ int create_sensorgroups_subscription(char **values)
                     for (size_t j = 0; j < i; j++)
                     {
                         hts_delete(sensors_table, sensor_list[j]);
-                        table_can_put(can_ids_table, sens->can_id, strdup(sens->id));
                     }
                     create_error_message(values, "One of the sensors of the sensorgroup is not correct");
                     return ERROR;
@@ -154,7 +150,6 @@ int create_sensorgroups_subscription(char **values)
                 sens->value = "";
                 sens->timestamp = 0;
                 hts_put(sensors_table, sens->id, sens);
-                table_can_put(can_ids_table, sens->can_id, strdup(sens->id));
                 printf("\t- Sensor %s created\n", sens->id);
                 
                 

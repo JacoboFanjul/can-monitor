@@ -43,7 +43,7 @@ void clean_mqtt() {
 void publish(char* topic, char* payload) {
     MQTTClient_message pubmsg = MQTTClient_message_initializer;
     pubmsg.payload = payload;
-    pubmsg.payloadlen = strlen(pubmsg.payload);
+    pubmsg.payloadlen = strlen(pubmsg.payload) + 1;
     pubmsg.qos = mqtt_qos;
     pubmsg.retained = 0;
     MQTTClient_deliveryToken token;

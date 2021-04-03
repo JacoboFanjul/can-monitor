@@ -24,7 +24,8 @@
 
 #include <stdio.h> 
 #include <unistd.h> 
-#include <netdb.h> 
+#include <netdb.h>
+#include <inttypes.h>
 #include <sys/types.h> 
 #include <sys/socket.h> 
 #include <netinet/in.h> 
@@ -370,7 +371,7 @@ void adeptness_service_start(adeptness_service *svc, adeptness_error *err)
 
     if (err->code == 0)
     {
-        printf("-- Service started in: %ld ms\n", device_millitime() - svc->starttime);
+        printf("-- Service started in: %"PRIu64" ms\n", device_millitime() - svc->starttime);
         printf("-- Listening on port: %d\n", svc->port);
     }
 }

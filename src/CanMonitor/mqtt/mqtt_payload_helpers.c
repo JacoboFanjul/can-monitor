@@ -6,12 +6,12 @@
 #include <ifaddrs.h>
 #include <stdio.h>
 
-#include <stdio.h> 
-#include <unistd.h> 
-#include <netdb.h> 
-#include <sys/types.h> 
-#include <sys/socket.h> 
-#include <netinet/in.h> 
+#include <stdio.h>
+#include <unistd.h>
+#include <netdb.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 #include <signal.h>
 
 #include "mqtt_payload_helpers.h"
@@ -33,15 +33,14 @@ extern int mqtt_qos;
  *
  * Creates the payload to send in the discovery message V2.
  */
-const char *create_discovery_payload(void)
-{
-        JSON_Value *rval = json_value_init_object();
+char *create_discovery_payload(void) {
+    JSON_Value *rval = json_value_init_object();
     JSON_Object *robj = json_value_get_object(rval);
 
     json_object_set_string(robj, "id", monitor_id);
     json_object_set_string(robj, "name", monitor_id);
     json_object_set_string(robj, "microservice-type", MS_TYPE);
-    
+
     JSON_Value *branch = json_value_init_array();
     JSON_Array *leaves = json_value_get_array(branch);
 
@@ -67,14 +66,14 @@ const char *create_discovery_payload(void)
     json_object_set_string(leaf_object, "endpoint-type", "http");
     endpoint_object_value = json_value_init_object();
     endpoint_object = json_value_get_object(endpoint_object_value);
-    
+
     // TODO fix IP
     char *IPbuffer;
-    struct hostent *host_entry; 
-    char hostbuffer[256]; 
-    gethostname(hostbuffer, sizeof(hostbuffer)); 
-    host_entry = gethostbyname(hostbuffer); 
-    IPbuffer = inet_ntoa(*((struct in_addr*)host_entry->h_addr_list[0])); 
+    struct hostent *host_entry;
+    char hostbuffer[256];
+    gethostname(hostbuffer, sizeof(hostbuffer));
+    host_entry = gethostbyname(hostbuffer);
+    IPbuffer = inet_ntoa(*((struct in_addr *) host_entry->h_addr_list[0]));
     json_object_set_string(endpoint_object, "ip", IPbuffer);
 
     // struct ifaddrs *ifap, *ifa;
@@ -103,16 +102,14 @@ const char *create_discovery_payload(void)
 
 }
 
-const char * create_data_payload(sensorgroup *sg)
-{
+char *create_data_payload(sensorgroup *sg) {
     struct timeval tv;
     gettimeofday(&tv, NULL);
 
     JSON_Value *branch = json_value_init_array();
     JSON_Array *leaves = json_value_get_array(branch);
 
-    for (int i = 0; i < sg->sensorcount; i++)
-    {
+    for (int i = 0; i < sg->sensorcount; i++) {
         sensor *sens = hts_get(sensors_table, sg->sensor_list[i]);
 
         JSON_Value *sensor_value = json_value_init_object();

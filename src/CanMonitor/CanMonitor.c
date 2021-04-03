@@ -23,7 +23,6 @@ uint8_t can_up;
 
 HashTableSensors *sensors_table;
 HashTableSensorgroups *sensorgroup_table;
-TableCan *can_ids_table;
 
 // REST config
 int rest_server_port;
@@ -399,34 +398,10 @@ void print_sensorgroups_table()
     }
 }
 
-void print_canid_table()
-{
-    printf("**************************\n******** CanIds *********\n**************************\n");
-    ListSensorIds *s_listptr;
-    for (unsigned int i = 0; i < can_ids_table->size; ++i) 
-    {
-        printf("%d--->", i);
-
-        s_listptr = can_ids_table->array[i];
-        
-
-        while (s_listptr != NULL)
-        {
-            char *sensor_id = strdup(s_listptr->sensor_id);
-                
-            printf("%s--->", sensor_id);
-
-            s_listptr = s_listptr->next;
-        }
-        printf(" NULL\n");
-    }
-}
-
 void print_struct()
 {
     print_sensors_table();
     print_sensorgroups_table();
-    print_canid_table();
 }
 
 #endif
@@ -464,20 +439,26 @@ void mask_can_frame(void *var_addr, struct can_frame *frame, uint32_t init_bit, 
  *
  * For every sensor in sensorList matching a given CAN frame ID, sets sensor->value
 */
-void parse_can_frame(struct can_frame *frame) {
+void parse_can_frame(struct can_frame *frame, int timestamp) {
     ListSensors *s_listptr;
 
     for (unsigned int i = 0; i < sensors_table->size; ++i) {
         s_listptr = sensors_table->array[i];
 
         while (s_listptr != NULL) {
-            sensor *sensor = malloc(sizeof *sensor);
-            sensor = s_listptr->sensor;
-            // TODO Def function that casts value from sensor->type to char
-            if (frame->can_id == sensor->can_id) {
+            if (frame->can_id == s_listptr->sensor->can_id) {
+                sensor *sensor1 = malloc(sizeof (sensor));
+                memcpy(sensor1,s_listptr->sensor,sizeof(sensor));
                 uint64_t var_value;
-                mask_can_frame((void *) &var_value, frame, sensor->init_bit, sensor->end_bit);
-                var_cast(sensor->value, (void *) &var_value, sensor->type);
+                mask_can_frame((void *) &var_value, frame, sensor1->init_bit, sensor1->end_bit);
+                char *sensor_value = strdup("000");
+                var_cast(sensor_value, (void *) &var_value, sensor1->type);
+                sensor1->value = strdup(sensor_value);
+                sensor1->timestamp = (timestamp);
+                //hts_put(sensors_table, sensor1->id, sensor1);
+                memcpy(s_listptr->sensor, sensor1, sizeof(sensor));
+                free(sensor1);
+                free(sensor_value);
             }
             s_listptr = s_listptr->next;
         }
@@ -635,7 +616,7 @@ int main(int argc, char *argv[]) {
     // Set non blocking
     fcntl(sockfd, F_SETFL, O_NONBLOCK);
 
-    char *discovery_payload = strdup(create_discovery_payload());
+    char *discovery_payload = create_discovery_payload();
     publish(DISCOVERY_TOPIC, discovery_payload);
     struct timeval current_time;
     gettimeofday(&current_time, NULL);
@@ -644,7 +625,6 @@ int main(int argc, char *argv[]) {
 
     sensors_table = hts_create(SENSORS_TABLE_SIZE);
     sensorgroup_table = htsg_create(SENSORGROUPS_TABLE_SIZE);
-    can_ids_table = table_can_create(CAN_IDS_TABLE_SIZE);
 
     // TODO delete, only for dev
 #if DEV
@@ -658,7 +638,7 @@ int main(int argc, char *argv[]) {
             clean_mqtt();
             initialize_mqtt(mqtt_broker_host, mqtt_broker_port, mqtt_qos, mqtt_username, monitor_id);
 
-            discovery_payload = strdup(create_discovery_payload());
+            discovery_payload = create_discovery_payload();
             publish(DISCOVERY_TOPIC, discovery_payload);
             gettimeofday(&current_time, NULL);
             current_ms = current_time.tv_sec * 1000 + current_time.tv_usec / 1000;
@@ -687,18 +667,20 @@ int main(int argc, char *argv[]) {
             if (EXISTS_CAN != 0) {
                 // Init CAN frame identifier and Extended/Standard flag:
                 struct can_frame frame;
-                int ExtFlag;
-                ExtFlag = can_read(sockfd, &frame);
+                int ExtFlag = can_read(sockfd, &frame);
 
-                struct timeval tv;
-                gettimeofday(&tv, NULL);
+                gettimeofday(&current_time, NULL);
 
                 if (ExtFlag == 2) // Extended Frame Format
                 {
-                    printf("Extended frame format to be implemented in future release\n");
+                    frame.can_id = frame.can_id & CAN_EFF_MASK;
+                    printf("id=0x%08X=%u\n", frame.can_id, frame.can_id);
+                    parse_can_frame(&frame, current_time.tv_sec);
                 } else if (ExtFlag == 1)// Standard Frame Format
                 {
-                    parse_can_frame(&frame);
+                    frame.can_id = frame.can_id & CAN_SFF_MASK;
+                    printf("id=0x%08X=%u\n", frame.can_id, frame.can_id);
+                    parse_can_frame(&frame, current_time.tv_sec);
                 }
             }
         }
@@ -718,11 +700,12 @@ int main(int argc, char *argv[]) {
                             sg->last_publish_time.tv_sec * 1000 + sg->last_publish_time.tv_usec / 1000;
                     if (current_ms - last_published_ms >= sg->publish_rate) {
                         char mqtt_data_topic[200];
+                        // ToDo: snprintf for buffer overflow control
                         sprintf(mqtt_data_topic, "%s/%s/%s", DATA_TOPIC_PREFIX, monitor_id, sg->id);
 
-                        const char *payload = create_data_payload(sg);
+                        char *payload = create_data_payload(sg);
 
-                        publish(mqtt_data_topic, strdup(payload));
+                        publish(mqtt_data_topic, payload);
                         printf("[%"PRIu64"] | Publish on %s: %s\n", current_ms, mqtt_data_topic, payload);
                         sg->last_publish_time.tv_sec = current_time.tv_sec;
                         sg->last_publish_time.tv_usec = current_time.tv_usec;
@@ -733,12 +716,11 @@ int main(int argc, char *argv[]) {
             }
         }
         // TODO find the correct number for sleep
-        usleep(10);
+        usleep(100);
     }
 
     hts_free(sensors_table);
     htsg_free(sensorgroup_table);
-    table_can_free(can_ids_table);
 
     /* Clean mqtt */
     clean_mqtt();

@@ -83,11 +83,10 @@ int hts_put(HashTableSensors *hashtable_sensors, const char *key, sensor *sensor
 void node_handler_sensors(HashTableSensors *hashtable_sensors, ListSensors *node)
 {
     unsigned int i = hash(node->key, hashtable_sensors->size);
-    ListSensors *tmp = hashtable_sensors->array[i];
 
     if (hashtable_sensors->array[i] != NULL)
     {
-        tmp = hashtable_sensors->array[i];
+        ListSensors *tmp = hashtable_sensors->array[i];
         while (tmp != NULL)
         {
             if (strcmp(tmp->key, node->key) == 0)

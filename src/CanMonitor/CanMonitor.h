@@ -4,7 +4,6 @@
 #include "implementation/tables/hashtable_common.h"
 #include "implementation/tables/hashtable_sensors.h"
 #include "implementation/tables/hashtable_sensorgroups.h"
-#include "implementation/tables/table_can.h"
 #include "implementation/impl.h"
 
 #define MS_TYPE "monitor-agent"
@@ -29,13 +28,11 @@
 
 #define SENSORS_TABLE_SIZE 2
 #define SENSORGROUPS_TABLE_SIZE 3
-#define CAN_IDS_TABLE_SIZE 5
 
 extern ms_status status;
 
 extern HashTableSensors *sensors_table;
 extern HashTableSensorgroups *sensorgroup_table;
-extern TableCan *can_ids_table;
 
 extern int rest_server_port;
 extern char *mqtt_broker_host;
@@ -59,7 +56,7 @@ int get_info_from_config_file(char *config_file);
 
 void mask_can_frame(void *var_addr, struct can_frame *frame, uint32_t init_bit, uint32_t end_bit);
 
-void parse_can_frame(struct can_frame *frame);
+void parse_can_frame(struct can_frame *frame, int timestamp);
 
 void var_cast(char *var_str, void *var_value, char* type);
 
