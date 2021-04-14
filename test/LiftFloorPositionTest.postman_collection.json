@@ -1,0 +1,198 @@
+{
+	"info": {
+		"_postman_id": "d11a665a-ea26-4be9-80b8-04efffc40e19",
+		"name": "LiftFloorPositionTest",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "ConfigPositionCPU0",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"sensor-id\": \"CPU0\",\n    \"sensor-name\": \"LiftFloorPosition\",\n    \"sensor-type\": \"Uint32\",\n    \"sensor-settings\": [\n        {\n            \"key\": \"can-id\",\n            \"value\": \"393518\"\n        },\n        {\n            \"key\": \"init-bit\",\n            \"value\": \"8\"\n        },\n        {\n            \"key\": \"end-bit\",\n            \"value\": \"13\"\n        }\n    ],\n    \"sampling-rate\": 1\n}"
+				},
+				"url": {
+					"raw": "http://172.16.124.67:48891/adms/v2/monitoring-agent/config/sensors",
+					"protocol": "http",
+					"host": [
+						"172",
+						"16",
+						"124",
+						"67"
+					],
+					"port": "48891",
+					"path": [
+						"adms",
+						"v2",
+						"monitoring-agent",
+						"config",
+						"sensors"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "ConfigPositionCPU1",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"sensor-id\": \"CPU1\",\n    \"sensor-name\": \"LiftFloorPosition\",\n    \"sensor-type\": \"Uint32\",\n    \"sensor-settings\": [\n        {\n            \"key\": \"can-id\",\n            \"value\": \"2490670\"\n        },\n        {\n            \"key\": \"init-bit\",\n            \"value\": \"8\"\n        },\n        {\n            \"key\": \"end-bit\",\n            \"value\": \"13\"\n        }\n    ],\n    \"sampling-rate\": 1\n}"
+				},
+				"url": {
+					"raw": "http://172.16.124.67:48891/adms/v2/monitoring-agent/config/sensors",
+					"protocol": "http",
+					"host": [
+						"172",
+						"16",
+						"124",
+						"67"
+					],
+					"port": "48891",
+					"path": [
+						"adms",
+						"v2",
+						"monitoring-agent",
+						"config",
+						"sensors"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "ConfigPositionCPU2",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"sensor-id\": \"CPU1\",\n    \"sensor-name\": \"LiftFloorPosition\",\n    \"sensor-type\": \"Uint32\",\n    \"sensor-settings\": [\n        {\n            \"key\": \"can-id\",\n            \"value\": \"2490670\"\n        },\n        {\n            \"key\": \"init-bit\",\n            \"value\": \"8\"\n        },\n        {\n            \"key\": \"end-bit\",\n            \"value\": \"13\"\n        }\n    ],\n    \"sampling-rate\": 1\n}"
+				},
+				"url": {
+					"raw": "http://172.16.124.67:48891/adms/v2/monitoring-agent/config/sensors",
+					"protocol": "http",
+					"host": [
+						"172",
+						"16",
+						"124",
+						"67"
+					],
+					"port": "48891",
+					"path": [
+						"adms",
+						"v2",
+						"monitoring-agent",
+						"config",
+						"sensors"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "ConfigPositionCPU3",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"sensor-id\": \"CPU3\",\n    \"sensor-name\": \"LiftFloorPosition\",\n    \"sensor-type\": \"Uint32\",\n    \"sensor-settings\": [\n        {\n            \"key\": \"can-id\",\n            \"value\": \"6684974\"\n        },\n        {\n            \"key\": \"init-bit\",\n            \"value\": \"8\"\n        },\n        {\n            \"key\": \"end-bit\",\n            \"value\": \"13\"\n        }\n    ],\n    \"sampling-rate\": 1\n}"
+				},
+				"url": {
+					"raw": "http://172.16.124.67:48891/adms/v2/monitoring-agent/config/sensors",
+					"protocol": "http",
+					"host": [
+						"172",
+						"16",
+						"124",
+						"67"
+					],
+					"port": "48891",
+					"path": [
+						"adms",
+						"v2",
+						"monitoring-agent",
+						"config",
+						"sensors"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "ConfigSubscriptionCPU03",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"sensorgroup-id\": \"sg_1\",\n  \"publish-rate\": 2000,\n  \"sensor-list\": [\n    {\n      \"sensor-id\": \"CPU0\"\n    },\n    {\n      \"sensor-id\": \"CPU1\"\n    },\n    {\n      \"sensor-id\": \"CPU2\"\n    },\n    {\n      \"sensor-id\": \"CPU3\"\n    }\n  ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://172.16.124.67:48891/adms/v2/monitoring-agent/config/sensorgroups",
+					"protocol": "http",
+					"host": [
+						"172",
+						"16",
+						"124",
+						"67"
+					],
+					"port": "48891",
+					"path": [
+						"adms",
+						"v2",
+						"monitoring-agent",
+						"config",
+						"sensorgroups"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "StartPublishing",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"order\": \"start\"\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://172.16.124.67:48891/adms/v2/monitoring-agent/cmd-execute",
+					"protocol": "http",
+					"host": [
+						"172",
+						"16",
+						"124",
+						"67"
+					],
+					"port": "48891",
+					"path": [
+						"adms",
+						"v2",
+						"monitoring-agent",
+						"cmd-execute"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

@@ -8,7 +8,7 @@
 
 #define MS_TYPE "monitor-agent"
 // TODO delete test part
-#define MQTT_API_PREFIX "test/adms/v2"
+#define MQTT_API_PREFIX "adms/v2"
 #define DATA_TOPIC_PREFIX MQTT_API_PREFIX "/" MS_TYPE
 #define DISCOVERY_TOPIC MQTT_API_PREFIX "/discovery"
 
@@ -26,8 +26,8 @@
 #define DEV 0
 #define AUTOSTART 0
 
-#define SENSORS_TABLE_SIZE 2
-#define SENSORGROUPS_TABLE_SIZE 3
+#define SENSORS_TABLE_SIZE 10
+#define SENSORGROUPS_TABLE_SIZE 10
 
 extern ms_status status;
 
